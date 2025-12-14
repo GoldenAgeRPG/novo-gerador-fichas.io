@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golden Age - Gerador Completo</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* --- VARIÁVEIS DO TEMA --- */
+  :root {
+    --gold: #d4af37;
+    --gold-dim: #8a7122;
+    --gold-glow: rgba(212, 175, 55, 0.2);
+    --bg-dark: #050505;
+    --bg-panel: #0f0f0f;
+    --bg-input: #161616;
+    --border: rgba(255,255,255,0.1);
+    --text-main: #e0e0e0;
+    --text-muted: #888;
+    --success: #4caf50;
+    --danger: #d32f2f;
+    --jjk-blue: #2563eb;
+    
+    /* Variáveis para o output (Preview) */
+    --jjk-purple: #6D20C5; 
+    --jjk-purple-light: #8a40e3;
+  }
+
+  /* --- RESET & BASE --- */
+  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at top center, #1a1a1a 0%, #000 80%);
+    color: var(--text-main);
+    line-height: 1.5;
+    padding: 30px;
+    min-height: 100vh;
+  }
+
+  .generator-container {
+    max-width: 1100px; 
+    margin: 0 auto; 
+    position: relative;
+  }
+
+  /* --- HEADER --- */
+  .gen-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 40px; 
+      border-bottom: 1px solid var(--gold);
+      padding-bottom: 20px;
+  }
+  .header-brand h1 { 
+      font-family: 'Cinzel', serif; 
+      color: var(--gold); 
+      font-weight: 700; 
+      font-size: 2.5em; 
+      text-transform: uppercase; 
+      letter-spacing: 2px;
+      text-shadow: 0 0 15px var(--gold-glow);
+  }
+  .header-brand p { font-size: 0.9em; color: var(--text-muted); letter-spacing: 1px; }
+
+  /* Cor Picker */
+  .color-picker-wrapper { 
+      display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
+  }
+  .color-row { display: flex; align-items: center; gap: 8px; }
+  .color-picker-wrapper label { font-size: 0.8em; color: var(--gold); }
+  input[type="color"] { background: none; border: none; width: 40px; height: 35px; cursor: pointer; padding: 0; }
+  #theme-hex {
+      background: var(--bg-input); border: 1px solid var(--border); color: var(--text-main);
+      padding: 5px; width: 80px; text-align: center; font-family: monospace; text-transform: uppercase; border-radius: 4px;
+  }
+
+  /* --- SEÇÕES --- */
+  .gen-section {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+    position: relative;
+    transition: border-color 0.3s;
+  }
+  .gen-section:hover { border-color: rgba(255,255,255,0.2); }
+  
+  .sec-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4em;
+    color: var(--gold);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* --- GRIDS --- */
+  .g-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .g-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .g-col-full { grid-column: 1 / -1; }
+
+  /* --- INPUTS --- */
+  .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
+  .form-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; }
+  
+  input, select, textarea {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 12px;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 10px var(--gold-glow);
+  }
+  textarea { min-height: 80px; resize: vertical; }
+
+  /* --- BOTÕES --- */
+  .btn {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+    color: #000;
+    font-weight: 700;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+  
+  .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+  .btn-outline:hover { background: var(--gold-glow); color: white; }
+  
+  .btn-pos { background: rgba(76, 175, 80, 0.2); border: 1px solid var(--success); color: var(--success); }
+  .btn-pos:hover { background: var(--success); color: #000; }
+  
+  .btn-neg { background: rgba(211, 47, 47, 0.2); border: 1px solid var(--danger); color: var(--danger); }
+  .btn-neg:hover { background: var(--danger); color: white; }
+
+  .btn-small { padding: 5px 10px; font-size: 0.8em; font-family: 'Inter', sans-serif; }
+
+  /* --- APTIDÕES (REMODELADO) --- */
+  .aptidao-header { 
+      grid-column: 1/-1; 
+      color: var(--gold); 
+      border-bottom: 1px solid var(--border); 
+      margin-top: 20px; 
+      margin-bottom: 10px;
+      font-family: 'Cinzel', serif; 
+      font-size: 1.1em;
+  }
+  
+  .apt-card {
+      background: rgba(255,255,255,0.03);
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      border-left: 3px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+  }
+  .apt-card.buffed { border-left-color: var(--success); background: rgba(76, 175, 80, 0.05); }
+  .apt-card.nerfed { border-left-color: var(--danger); background: rgba(211, 47, 47, 0.05); }
+
+  .apt-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+  }
+  .apt-name-label {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.9rem;
+  }
+
+  .apt-input-row {
+      display: grid;
+      grid-template-columns: 80px 1fr; /* Nivel (menor) | XP (maior) */
+      gap: 10px;
+  }
+
+  .apt-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+  }
+  .apt-sub-label {
+      font-size: 0.65em;
+      text-transform: uppercase;
+      color: #666;
+  }
+
+  .lvl-display { 
+      background: rgba(0,0,0,0.3); 
+      border: 1px solid var(--border); 
+      color: var(--gold); 
+      font-weight: bold; 
+      text-align: center; 
+      pointer-events: none; 
+      padding: 8px;
+      border-radius: 4px;
+  }
+  .xp-input-total { 
+      text-align: center; 
+      padding: 8px;
+  }
+
+  .btn-levelup {
+      background: var(--jjk-blue); 
+      color: white; 
+      border: none; 
+      border-radius: 3px;
+      font-size: 0.7em; 
+      font-weight: bold; 
+      padding: 4px 8px; 
+      cursor: pointer; 
+      opacity: 0.8;
+      transition: all 0.2s;
+  }
+  .btn-levelup:hover { opacity: 1; transform: scale(1.05); }
+
+  .apt-modifiers-area { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 4px; 
+      font-size: 0.7em; 
+      margin-top: -5px;
+  }
+  .mod-tag { padding: 2px 6px; border-radius: 3px; font-weight: bold; background: rgba(0,0,0,0.3); }
+  .mod-tag.positive { color: var(--success); border: 1px solid rgba(76, 175, 80, 0.3); } 
+  .mod-tag.negative { color: var(--danger); border: 1px solid rgba(211, 47, 47, 0.3); }
+
+  /* --- TRAITS MANAGER --- */
+  .trait-manager { border: 1px solid var(--border); background: var(--bg-input); border-radius: 6px; overflow: hidden; }
+  .trait-summary {
+      background: rgba(0,0,0,0.5); padding: 10px 15px; display: flex; justify-content: space-between;
+      border-bottom: 1px solid var(--border); font-family: 'Cinzel', serif; font-size: 0.9em;
+  }
+  .points-ok { color: var(--success); }
+  .points-bad { color: var(--danger); font-weight: bold; }
+
+  .trait-list { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+  .trait-row {
+      display: flex; gap: 10px; align-items: flex-start; background: var(--bg-panel); padding: 10px;
+      border-radius: 4px; border: 1px solid var(--border);
+  }
+  .trait-row.t-pos { border-left: 3px solid var(--success); }
+  .trait-row.t-neg { border-left: 3px solid var(--danger); }
+  
+  .trait-info { flex: 1; }
+  .t-name { font-weight: bold; color: white; display: block; }
+  .t-cost { font-size: 0.8em; color: var(--gold); margin-left: 5px; }
+  .t-desc { font-size: 0.8em; color: #888; display: block; margin-top: 4px; }
+
+  /* --- MODAL --- */
+  .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+      background: var(--bg-panel); border: 1px solid var(--gold); box-shadow: 0 0 30px var(--gold-glow);
+      padding: 30px; width: 90%; max-width: 450px; border-radius: 8px; text-align: center;
+  }
+  .modal-title { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.5em; margin-bottom: 10px; }
+  .modal-text { color: var(--text-main); margin-bottom: 25px; }
+  .modal-actions { display: flex; justify-content: center; gap: 15px; }
+
+  /* --- DYNAMIC CARDS (Tech/Equip) --- */
+  .dynamic-card { background: var(--bg-input); padding: 15px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px; position: relative; }
+  .trait-card.positive { border-left: 3px solid var(--success); }
+  .trait-card.negative { border-left: 3px solid var(--danger); }
+  
+  .remove-corner { position: absolute; top: 10px; right: 10px; font-size: 0.8em; background: #333; color: #fff; border:none; padding: 2px 8px; cursor: pointer; border-radius: 3px;}
+  .remove-corner:hover { background: var(--danger); }
+  .sub-list { margin-top: 10px; padding-left: 15px; border-left: 2px solid var(--gold); }
+  .sub-card { background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 5px; border-radius: 4px; position: relative; }
+
+  /* Indicador de Salvamento */
+  .save-indicator {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--gold); color: #000;
+      padding: 8px 15px; border-radius: 20px;
+      font-weight: bold; font-size: 0.8em;
+      opacity: 0; transition: opacity 0.5s;
+      pointer-events: none;
+      z-index: 1000;
+  }
+  .save-indicator.active { opacity: 1; }
+
+  @media (max-width: 768px) { .g-grid-2, .g-grid-3 { grid-template-columns: 1fr; } .gen-header { flex-direction: column; text-align: center; gap: 15px; } }
+</style>
+</head>
+<body>
+
+<div class="save-indicator" id="autoSaveMsg">Salvo</div>
+
+<div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+        <h3 class="modal-title" id="modalTitle">Aviso</h3>
+        <p class="modal-text" id="modalText">Mensagem.</p>
+        <div class="modal-actions" id="modalActions"></div>
+    </div>
+</div>
+
+<div class="generator-container">
+  
+  <div class="gen-header">
+    <div class="header-brand">
+        <h1>Golden Age</h1>
+        <p>Gerador de Ficha & Motor de Cálculo</p>
+    </div>
+    <div class="color-picker-wrapper">
+        <label>Cor do Template</label>
+        <div class="color-row">
+            <input type="color" id="theme-color" value="#6D20C5">
+            <input type="text" id="theme-hex" value="#6D20C5" maxlength="7">
+        </div>
+    </div>
+  </div>
+
+  <div class="gen-section">
+    <div class="sec-title">
+        <span>Carregar Ficha</span>
+        <button type="button" class="btn btn-outline btn-small" id="clear-form-btn">Limpar</button>
+    </div>
+    <div class="form-group">
+      <textarea id="input-html" placeholder="Cole o código HTML da sua ficha aqui para editar..."></textarea>
+    </div>
+    <button type="button" class="btn" id="load-html-btn" style="width:100%">Carregar e Recalcular</button>
+  </div>
+
+  <form id="sheet-generator-form">
+
+    <div class="gen-section">
+      <div class="sec-title">Informações Básicas</div>
+      <div class="g-grid-2">
+        <div class="form-group g-col-full">
+          <label class="form-label">Nome do Personagem</label>
+          <input type="text" id="char-name" class="watch-save" placeholder="Ex: Satoru Gojo">
+        </div>
+        <div class="form-group"><label class="form-label">Apelido</label><input type="text" id="char-nickname" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Idade</label><input type="text" id="char-age" class="watch-save"></div>
+        <div class="form-group g-col-full"><label class="form-label">Header (Larga)</label><input type="url" id="char-header-img" class="watch-save"></div>
+        <div class="form-group g-col-full"><label class="form-label">Perfil (Quadrada)</label><input type="url" id="char-profile-pic" class="watch-save"></div>
+      </div>
+    </div>
+
+    <div class="gen-section">
+      <div class="sec-title">Status</div>
+      <div class="g-grid-2">
+        <div class="form-group"><label class="form-label">Espécie</label><input type="text" id="char-species" class="watch-save" value="Humano (Feiticeiro)"></div>
+        <div class="form-group">
+          <label class="form-label">Grau</label>
+          <select id="char-grade" class="watch-save">
+            <option value="4" selected>Grau 4</option>
+            <option value="3">Grau 3</option>
+            <option value="2">Grau 2</option>
+            <option value="1">Grau 1</option>
+            <option value="Semi-Especial">Semi-Especial</option>
+            <option value="Especial">Especial</option>
+          </select>
+        </div>
+        <div class="form-group g-col-full">
+          <label class="form-label">Alinhamento</label>
+          <select id="char-alignment" class="watch-save">
+            <option value="Leal e Bom">Leal e Bom</option>
+            <option value="Neutro e Bom">Neutro e Bom</option>
+            <option value="Caótico e Bom">Caótico e Bom</option>
+            <option value="Leal e Neutro">Leal e Neutro</option>
+            <option value="Neutro Verdadeiro" selected>Neutro Verdadeiro</option>
+            <option value="Caótico e Neutro">Caótico e Neutro</option>
+            <option value="Leal e Mau">Leal e Mau</option>
+            <option value="Neutro e Mau">Neutro e Mau</option>
+            <option value="Caótico e Mau">Caótico e Mau</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Vigor (HP)</label><input type="text" id="char-hp" class="watch-save" value="400/400"></div>
+        <div class="form-group"><label class="form-label">Energia (EA)</label><input type="text" id="char-ea" class="watch-save" value="400/400"></div>
+      </div>
+    </div>
+    
+    <div class="gen-section">
+      <div class="sec-title">Atributos</div>
+      <div class="g-grid-3" id="attributes-grid">
+        <div class="form-group"><label class="form-label">Força</label><input type="text" id="attr-for" class="watch-save" value="00/20"></div>
+        <div class="form-group"><label class="form-label">Destreza</label><input type="text" id="attr-des" class="watch-save" value="00/20"></div>
+        <div class="form-group"><label class="form-label">Inteligência</label><input type="text" id="attr-int" class="watch-save" value="00/20"></div>
+        <div class="form-group"><label class="form-label">Sorte</label><input type="text" id="attr-sor" class="watch-save" value="00/20"></div>
+        <div class="form-group"><label class="form-label">Vigor</label><input type="text" id="attr-vig" class="watch-save" value="00/20"></div>
+        <div class="form-group"><label class="form-label">Energia</label><input type="text" id="attr-ene" class="watch-save" value="00/20"></div>
+        <div class="form-group"><label class="form-label">Fonte</label><input type="text" id="attr-fon" class="watch-save" value="00/20"></div>
+      </div>
+    </div>
+
+    <div class="gen-section">
+      <div class="sec-title">Perfil</div>
+      <div class="form-group"><label class="form-label">Físico Geral</label><textarea id="profile-phys-desc" class="watch-save"></textarea></div>
+      <div class="g-grid-3">
+        <div class="form-group"><label class="form-label">Cabelo</label><input type="text" id="phys-cabelo" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Olhos</label><input type="text" id="phys-olhos" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Pele</label><input type="text" id="phys-pele" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Altura</label><input type="text" id="phys-altura" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Peso</label><input type="text" id="phys-peso" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Extras</label><input type="text" id="phys-extras" class="watch-save"></div>
+      </div>
+      <hr style="border-color:var(--border); margin: 20px 0;">
+      <div class="form-group"><label class="form-label">Psicológico Geral</label><textarea id="profile-psy-desc" class="watch-save"></textarea></div>
+      <div class="g-grid-2">
+        <div class="form-group"><label class="form-label">Gostos</label><input type="text" id="psy-gostos" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Desgostos</label><input type="text" id="psy-desgostos" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Medos</label><input type="text" id="psy-medos" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Traumas</label><input type="text" id="psy-traumas" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Objetivos</label><input type="text" id="psy-objetivos" class="watch-save"></div>
+        <div class="form-group"><label class="form-label">Sonhos</label><input type="text" id="psy-sonhos" class="watch-save"></div>
+      </div>
+    </div>
+
+    <div class="gen-section">
+      <div class="sec-title">Detalhes & Modificadores</div>
+      
+      <div class="form-group">
+        <label class="form-label" style="color:var(--gold);">Particularidade</label>
+        <input type="text" id="part-name" class="modifier-trigger watch-save" placeholder="Nome (Ex: Gênio das Barreiras)">
+      </div>
+      <div class="g-grid-2">
+          <div class="form-group"><label class="form-label">Link</label><input type="url" id="part-link" class="watch-save"></div>
+          <div class="form-group"><label class="form-label">Notas/Sistemas</label><input type="text" id="part-notes" class="watch-save"></div>
+      </div>
+      <div class="form-group">
+          <label class="form-label">Descrição da Particularidade</label>
+          <textarea id="part-desc" class="modifier-trigger watch-save"></textarea>
+      </div>
+
+      <hr style="border-color:var(--border); margin: 30px 0;">
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <label class="form-label" style="color:var(--gold); font-size:1em;">Características</label>
+          <div style="display:flex; gap:10px;">
+              <button type="button" class="btn btn-pos btn-small" id="add-trait-pos">+ Positiva</button>
+              <button type="button" class="btn btn-neg btn-small" id="add-trait-neg">+ Negativa</button>
+          </div>
+      </div>
+      <div id="traits-container"></div>
+    </div>
+
+    <div class="gen-section">
+      <div class="sec-title">Aptidões</div>
+      <p style="font-size:0.8em; color:#666; margin-bottom:15px;">
+          Insira o <strong>XP Total</strong>. Use o botão <strong>+1</strong> para subir de nível direto.
+      </p>
+      <div class="g-grid-3" id="aptitudes-container"></div>
+    </div>
+
+    <div class="gen-section">
+      <div class="sec-title">Arsenal & Poderes</div>
+      <div id="technique-groups-list"></div>
+      <button type="button" class="btn btn-outline" id="add-technique-group" style="width:100%; margin-bottom:30px;">+ Adicionar Técnica</button>
+
+      <div class="g-grid-2" style="background:rgba(255,255,255,0.03); padding:15px; border-radius:6px; margin-bottom:30px;">
+          <div class="form-group g-col-full"><label class="form-label">Expansão de Domínio (Nome)</label><input type="text" id="domain-name" class="watch-save"></div>
+          <div class="form-group"><label class="form-label">Link</label><input type="url" id="domain-link" class="watch-save"></div>
+          <div class="form-group"><label class="form-label">Descrição</label><textarea id="domain-desc" class="watch-save"></textarea></div>
+      </div>
+      
+      <div id="equipment-list"></div>
+      <button type="button" class="btn btn-outline" id="add-equipment" style="width:100%">+ Adicionar Equipamento</button>
+    </div>
+
+    <div class="gen-section">
+      <div class="sec-title">Social & História</div>
+      <div id="relations-list"></div>
+      <button type="button" class="btn btn-outline" id="add-relation" style="width:100%; margin-bottom:30px;">+ Nova Relação</button>
+      
+      <div class="form-group"><label class="form-label">Biografia Completa</label><textarea id="bio-text" class="watch-save" style="min-height:200px;"></textarea></div>
+    </div>
+
+  </form>
+  
+  <div class="gen-section" style="border-color:var(--gold);">
+    <div class="sec-title">Código Final</div>
+    <textarea id="output-html" readonly style="font-family:monospace; color:var(--gold); font-size:0.8em;"></textarea>
+    <button type="button" class="btn" id="copy-html-btn" style="width:100%; margin-top:10px;">Copiar Código</button>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const generatorForm = document.getElementById("sheet-generator-form");
+    if (!generatorForm) return;
+
+    // === XP DATA ===
+    const xpTable=[{l:1,x:200},{l:2,x:500},{l:3,x:900},{l:4,x:1400},{l:5,x:2000},{l:6,x:2700},{l:7,x:3500},{l:8,x:4400},{l:9,x:5400},{l:10,x:6500},{l:11,x:8600},{l:12,x:10800},{l:13,x:13100},{l:14,x:15500},{l:15,x:18000},{l:16,x:20600},{l:17,x:23300},{l:18,x:26100},{l:19,x:29000},{l:20,x:32000},{l:21,x:36000},{l:22,x:40100},{l:23,x:44300},{l:24,x:48600},{l:25,x:53000},{l:26,x:57500},{l:27,x:62100},{l:28,x:66800},{l:29,x:71600},{l:30,x:76500},{l:31,x:82400},{l:32,x:88400},{l:33,x:94500},{l:34,x:100700},{l:35,x:107000},{l:36,x:113400},{l:37,x:119900},{l:38,x:126500},{l:39,x:133200},{l:40,x:140000},{l:41,x:147800},{l:42,x:155700},{l:43,x:163700},{l:44,x:171800},{l:45,x:180000},{l:46,x:188300},{l:47,x:196700},{l:48,x:205200},{l:49,x:213800},{l:50,x:222500}];
+    const aptitudesDB=[{id:"apt-combate-desarmado",name:"Combate Desarmado",type:"FOR"},{id:"apt-espadas-longas",name:"Espadas Longas",type:"FOR"},{id:"apt-machados-longos",name:"Machados Longos",type:"FOR"},{id:"apt-martelos-longos",name:"Martelos Longos",type:"FOR"},{id:"apt-clavas",name:"Clavas",type:"FOR"},{id:"apt-escalada",name:"Escalada",type:"FOR"},{id:"apt-acrobacia",name:"Acrobacia",type:"FOR"},{id:"apt-espadas-curtas",name:"Espadas Curtas",type:"DES"},{id:"apt-adagas",name:"Adagas",type:"DES"},{id:"apt-laminas-duplas",name:"Lâminas Duplas",type:"DES"},{id:"apt-machados-curtos",name:"Machados Curtos",type:"DES"},{id:"apt-martelos-curtos",name:"Martelos Curtos",type:"DES"},{id:"apt-lancas",name:"Lanças",type:"DES"},{id:"apt-foices",name:"Foices",type:"DES"},{id:"apt-bastoes",name:"Bastões",type:"DES"},{id:"apt-correntes",name:"Correntes",type:"DES"},{id:"apt-arremesso",name:"Arremesso de Armas",type:"DES"},{id:"apt-armas-fogo",name:"Armas de Fogo",type:"DES"},{id:"apt-furtividade",name:"Furtividade",type:"DES"},{id:"apt-natacao",name:"Natação",type:"DES"},{id:"apt-corrida",name:"Corrida",type:"DES"},{id:"apt-feiticos",name:"Feitiços",type:"INT"},{id:"apt-barreiras",name:"Barreiras",type:"INT"},{id:"apt-pactos",name:"Pactos",type:"INT"},{id:"apt-percepcao-magica",name:"Percepção Mágica",type:"INT"},{id:"apt-primeiros-socorros",name:"Primeiros Socorros",type:"INT"},{id:"apt-tecnica-reversa",name:"Técnica Reversa",type:"INT"},{id:"apt-percepcao-visual",name:"Percepção Visual",type:"INT"},{id:"apt-sobrevivencia",name:"Sobrevivência",type:"INT"}];
+
+    // === UI BUILDER: APTITUDES ===
+    const aptContainer = document.getElementById("aptitudes-container");
+    let lastType="";
+    aptitudesDB.forEach(a=>{
+        if(a.type!==lastType){
+            const h=document.createElement("span");h.className="aptidao-header";h.textContent=a.type==="FOR"?"Força (FOR)":a.type==="DES"?"Destreza (DES)":"Inteligência (INT)";aptContainer.appendChild(h);lastType=a.type;
+        }
+        const d=document.createElement("div");d.className="apt-card";d.id=`wrapper-${a.id}`;
+        d.innerHTML=`<div class="apt-top-row"><span class="apt-name-label">${a.name}</span><button type="button" class="btn-levelup" data-id="${a.id}" title="Ganho de Nível Direto">+1</button></div><div class="apt-input-row"><div class="apt-input-group"><span class="apt-sub-label">Nível</span><input type="text" id="${a.id}-lvl" class="lvl-display" value="00" readonly tabindex="-1"></div><div class="apt-input-group"><span class="apt-sub-label">XP Total</span><input type="number" id="${a.id}-xp" class="xp-input-total watch-save xp-input" placeholder="0" min="0"></div></div><div class="apt-modifiers-area" id="mods-${a.id}"></div>`;
+        aptContainer.appendChild(d);
+    });
+
+    // === TRAIT MANAGEMENT (MANUAL) ===
+    const traitsContainer = document.getElementById("traits-container");
+    
+    function addManualTrait(type, name="", desc=""){
+        const div = document.createElement("div");
+        div.className = `dynamic-card trait-card ${type==='pos'?'positive':'negative'}`;
+        div.innerHTML = `<button type="button" class="remove-corner">X</button>
+        <div class="form-group"><label class="form-label">Nome e Custo (Ex: Bilíngue — 3 pts)</label><input type="text" class="gen-input trait-name modifier-trigger watch-save" value="${name}"></div>
+        <div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea trait-desc watch-save">${desc}</textarea></div>`;
+        traitsContainer.appendChild(div);
+        
+        div.querySelector('.trait-name').addEventListener('input', recalcAll);
+        div.querySelector('.remove-corner').addEventListener('click', ()=>{ div.remove(); recalcAll(); saveData(); });
+        div.querySelectorAll('.watch-save').forEach(el => el.addEventListener('input', saveData));
+    }
+
+    document.getElementById("add-trait-pos").addEventListener("click", ()=>addManualTrait('pos'));
+    document.getElementById("add-trait-neg").addEventListener("click", ()=>addManualTrait('neg'));
+
+    // === XP LOGIC ===
+    function getActiveModifiers(){
+        let texts=[];
+        const pn=document.getElementById("part-name").value, pd=document.getElementById("part-desc").value;
+        if(pn) texts.push({s:"Particularidade",t:pn.toLowerCase()});
+        if(pd) texts.push({s:"Particularidade",t:pd.toLowerCase()});
+        document.querySelectorAll(".trait-name").forEach(el=>{if(el.value)texts.push({s:el.value.split("—")[0].trim(),t:el.value.toLowerCase()})});
+        let ar=[];
+        texts.forEach(i=>{
+            const t=i.t, s=i.s;
+            if(t.includes("gênio das barreiras")){ar.push({ty:'ID',tg:'apt-barreiras',m:0.8,sn:s});ar.push({ty:'TYPE',tg:'FOR',m:1.2,sn:s});ar.push({ty:'TYPE',tg:'DES',m:1.2,sn:s});}
+            if(t.includes("prodígio físico")) ar.push({ty:'TYPE',tg:'INT',m:1.2,sn:s});
+            if(t.includes("prodígio absoluto")) ar.push({ty:'GLOBAL',tg:'ALL',m:0.85,sn:s});
+            if(t.includes("domínio parcial de técnica")){ar.push({ty:'ID',tg:'apt-feiticos',m:0.95,sn:s});ar.push({ty:'ID',tg:'apt-barreiras',m:0.95,sn:s});}
+            if(t.includes("déficit cognitivo")) ar.push({ty:'TYPE',tg:'INT',m:1.3,sn:s});
+            if(t.includes("lerdeza física")){ar.push({ty:'TYPE',tg:'FOR',m:1.2,sn:s});ar.push({ty:'TYPE',tg:'DES',m:1.2,sn:s});}
+            if(t.includes("prodígio específico")){if(t.includes("força"))ar.push({ty:'TYPE',tg:'FOR',m:0.65,sn:s});if(t.includes("destreza"))ar.push({ty:'TYPE',tg:'DES',m:0.65,sn:s});if(t.includes("inteligência"))ar.push({ty:'TYPE',tg:'INT',m:0.65,sn:s});}
+        });
+        return ar;
+    }
+
+    function calculateAptitude(aptId, xpTotal){
+        const aptData=aptitudesDB.find(a=>a.id===aptId);
+        const rules=getActiveModifiers();
+        let mult=1.0, tags=[];
+        rules.forEach(r=>{
+            if(r.ty==='GLOBAL'||(r.ty==='TYPE'&&r.tg===aptData.type)||(r.ty==='ID'&&r.tg===aptData.id)){
+                mult*=r.m;
+                const p=Math.round((1-r.m)*100);
+                tags.push({txt:r.m<1?`${r.sn}: -${p}%`:`${r.sn}: +${Math.abs(p)}%`,cls:r.m<1?"positive":"negative"});
+            }
+        });
+        
+        const wrap=document.getElementById(`wrapper-${aptId}`);
+        const tagC=document.getElementById(`mods-${aptId}`);
+        if(tagC){
+            tagC.innerHTML=""; wrap.classList.remove("buffed","nerfed");
+            if(mult<1) wrap.classList.add("buffed"); if(mult>1) wrap.classList.add("nerfed");
+            tags.forEach(t=>{const s=document.createElement("span");s.className=`mod-tag ${t.cls}`;s.textContent=t.txt;tagC.appendChild(s);});
+        }
+
+        let lvl=0, next=Math.floor(200*mult), base=0, nextBase=next;
+        for(let i=0;i<xpTable.length;i++){
+            const req=Math.floor(xpTable[i].x*mult);
+            if(xpTotal>=req){
+                lvl=xpTable[i].l; base=req;
+                if(i+1<xpTable.length){ nextBase=Math.floor(xpTable[i+1].x*mult); next=nextBase; } else next=null;
+            } else { if(lvl===0) next=req; break; }
+        }
+        let fmt="MÁXIMO";
+        if(next!==null) fmt=`${xpTotal-base}/${next-base}`;
+        return {l:lvl,f:fmt,m:mult};
+    }
+
+    function recalcAll(){
+        aptitudesDB.forEach(a=>{
+            const xpI=document.getElementById(`${a.id}-xp`);
+            const lvlI=document.getElementById(`${a.id}-lvl`);
+            const v=parseInt(xpI.value)||0;
+            const r=calculateAptitude(a.id, v);
+            lvlI.value=r.l<10?"0"+r.l:r.l; xpI.dataset.formatted=r.f;
+        });
+        generateHTML();
+    }
+
+    // LISTENER GLOBAL (CORREÇÃO DE BOTÃO +1)
+    document.body.addEventListener('click', e => {
+        if(e.target.classList.contains('btn-levelup')){
+            const id = e.target.dataset.id;
+            const lvlInput = document.getElementById(`${id}-lvl`);
+            const curL = parseInt(lvlInput.value) || 0;
+            
+            if(curL >= 50) return showAlert("Aviso", "Nível Máximo!");
+            
+            const aptName = aptitudesDB.find(a=>a.id===id).name;
+            showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
+                const multiplier = calculateAptitude(id, 0).m;
+                const reqTable = xpTable.find(x => x.l === curL + 1);
+                
+                if(reqTable) {
+                    const newTotalXP = Math.floor(reqTable.x * multiplier);
+                    document.getElementById(`${id}-xp`).value = newTotalXP;
+                    recalcAll();
+                    saveData();
+                }
+            });
+        }
+    });
+
+    // === GENERATE HTML ===
+    function generateHTML(){
+        const v=(id)=>document.getElementById(id).value;
+        const br=(s)=>s.replace(/\n/g,"<br>");
+        let skillH="";
+        ["FOR","DES","INT"].forEach(t=>{
+            skillH+=`<div class="jjk-dossier-skills-category"><h4 class="jjk-category-title">${t==="FOR"?"Força":t==="DES"?"Destreza":"Inteligência"}</h4><div class="jjk-dossier-skills-list">`;
+            aptitudesDB.filter(a=>a.type===t).forEach(a=>{
+                const xp=document.getElementById(`${a.id}-xp`).dataset.formatted||"000/200";
+                const l=document.getElementById(`${a.id}-lvl`).value;
+                skillH+=`<div class="jjk-dossier-skill-item"><span class="jjk-dossier-skill-name">${a.name}</span><span class="jjk-dossier-skill-level">Nv. ${l}</span><span class="jjk-dossier-skill-xp">${xp}</span><div class="jjk-dossier-skill-bar"><div class="jjk-dossier-skill-bar-fill"></div></div></div>`;
+            });
+            skillH+=`</div></div>`;
+        });
+
+        let traitH="";
+        document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
+            const name=r.querySelector(".trait-name").value;
+            const desc=r.querySelector(".trait-desc").value;
+            const type=r.classList.contains("positive")?"jjk-card-positive":"jjk-card-negative";
+            traitH+=`<div class="jjk-dossier-card-item ${type}"><div class="jjk-dossier-card-title">${name}</div><div class="jjk-dossier-card-desc">${br(desc)}</div></div>`;
+        });
+
+        let techH="", equipH="", relH="";
+        document.querySelectorAll("#technique-groups-list .dynamic-card").forEach(c=>{
+            let sp="";c.querySelectorAll(".dynamic-sub-card").forEach(s=>sp+=`<div class="jjk-dossier-card-item"><div class="jjk-dossier-card-title">${s.querySelector(".spell-name").value}</div><div class="jjk-dossier-card-desc">${br(s.querySelector(".spell-desc").value)}</div></div>`);
+            techH+=`<div class="jjk-technique-group"><h4 class="jjk-technique-title"><a href="${c.querySelector(".tech-group-link").value}">${c.querySelector(".tech-group-name").value}</a></h4><div class="jjk-technique-desc jjk-scrollable-content">${br(c.querySelector(".tech-group-desc").value)}</div><div class="jjk-dossier-card-list">${sp}</div></div>`;
+        });
+        document.querySelectorAll("#equipment-list .dynamic-card").forEach(c=>equipH+=`<div class="jjk-dossier-card-item"><div class="jjk-dossier-card-title">${c.querySelector(".equip-name").value}</div><div class="jjk-dossier-card-subtitle">${c.querySelector(".equip-type").value}</div><div class="jjk-dossier-card-desc">${br(c.querySelector(".equip-desc").value)}</div></div>`);
+        document.querySelectorAll("#relations-list .dynamic-card").forEach(c=>{
+            const st=c.querySelector(".rel-status").value; const tg=st==='vivo'?' <span class="jjk-status-tag jjk-status-vivo">(Vivo)</span>':st==='morto'?' <span class="jjk-status-tag jjk-status-morto">(Morto)</span>':'';
+            relH+=`<div class="jjk-dossier-card-item"><div class="jjk-dossier-card-title">${c.querySelector(".rel-name").value}${tg}</div><div class="jjk-dossier-card-subtitle">Relação: ${c.querySelector(".rel-type").value}</div><div class="jjk-dossier-card-desc">${br(c.querySelector(".rel-desc").value)}</div></div>`;
+        });
+
+        const root=document.documentElement, mc=getComputedStyle(root).getPropertyValue("--jjk-purple"), lc=getComputedStyle(root).getPropertyValue("--jjk-purple-light");
+        const tpl=`<link href="https://gaaaaaaaaabs.github.io/goldenagerepositor.io/ficha-v2.css" rel="stylesheet" type="text/css"><style>:root{--jjk-purple:${mc}!important;--jjk-purple-light:${lc}!important;}</style><div class="jjk-dossier-container"><div class="jjk-dossier-header" style="background-image:url('${v("char-header-img")}');"><div class="jjk-dossier-header-overlay"><div class="jjk-dossier-name">${v("char-name")}</div><div class="jjk-dossier-subtitle"><span class="jjk-dossier-apelido">${v("char-nickname")}</span> | <span class="jjk-dossier-grau">Grau ${v("char-grade")}</span></div></div></div><div class="jjk-dossier-body"><div class="jjk-dossier-left-col"><img class="jjk-dossier-profile-pic" src="${v("char-profile-pic")}"><div class="jjk-dossier-info-box"><div class="jjk-info-item"><span class="jjk-info-label">Idade</span><span class="jjk-info-value">${v("char-age")}</span></div><div class="jjk-info-item"><span class="jjk-info-label">Espécie</span><span class="jjk-info-value">${v("char-species")}</span></div><div class="jjk-info-item"><span class="jjk-info-label">Alinhamento</span><span class="jjk-info-value">${v("char-alignment")}</span></div></div></div><div class="jjk-dossier-right-col"><div class="jjk-dossier-block"><h3 class="jjk-block-title">Status</h3><div class="jjk-status-wrapper"><div class="jjk-dossier-status-item"><div class="jjk-dossier-status-header"><span class="jjk-dossier-status-name">Vigor</span><span class="jjk-dossier-status-value">${v("char-hp")}</span></div><div class="jjk-dossier-status-bar"><div class="jjk-dossier-hp-fill"></div></div></div><div class="jjk-dossier-status-item"><div class="jjk-dossier-status-header"><span class="jjk-dossier-status-name">Energia</span><span class="jjk-dossier-status-value">${v("char-ea")}</span></div><div class="jjk-dossier-status-bar"><div class="jjk-dossier-ea-fill"></div></div></div></div></div><div class="jjk-dossier-block"><h3 class="jjk-block-title">Atributos</h3><div class="jjk-dossier-attr-list"><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Força</span><span class="jjk-dossier-attr-value">${v("attr-for")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Destreza</span><span class="jjk-dossier-attr-value">${v("attr-des")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Inteligência</span><span class="jjk-dossier-attr-value">${v("attr-int")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Sorte</span><span class="jjk-dossier-attr-value">${v("attr-sor")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Vigor</span><span class="jjk-dossier-attr-value">${v("attr-vig")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Energia</span><span class="jjk-dossier-attr-value">${v("attr-ene")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div><div class="jjk-dossier-attr-item"><div class="jjk-dossier-attr-header"><span class="jjk-dossier-attr-name">Fonte</span><span class="jjk-dossier-attr-value">${v("attr-fon")}</span></div><div class="jjk-dossier-attr-bar"><div class="jjk-dossier-attr-bar-fill"></div></div></div></div></div></div></div><div class="jjk-dossier-tabs-container jjk-tabs-js"><div class="jjk-dossier-tab-nav"><label class="jjk-tab-label">Perfil</label><label class="jjk-tab-label">Combate</label><label class="jjk-tab-label">Detalhes</label><label class="jjk-tab-label">Relações</label><label class="jjk-tab-label">Biografia</label></div><div class="jjk-tab-content-wrapper"><div class="jjk-tab-content"><div class="jjk-dossier-block"><h3 class="jjk-block-title">Físico</h3><div class="jjk-profile-description jjk-scrollable-content">${br(v("profile-phys-desc"))}</div><div class="jjk-profile-list"><div class="jjk-profile-item"><span class="jjk-profile-label">Cabelo:</span> ${v("phys-cabelo")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Olhos:</span> ${v("phys-olhos")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Pele:</span> ${v("phys-pele")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Altura:</span> ${v("phys-altura")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Peso:</span> ${v("phys-peso")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Extras:</span> ${v("phys-extras")}</div></div></div><div class="jjk-dossier-block"><h3 class="jjk-block-title">Psicológico</h3><div class="jjk-profile-description jjk-scrollable-content">${br(v("profile-psy-desc"))}</div><div class="jjk-profile-list"><div class="jjk-profile-item"><span class="jjk-profile-label">Gostos:</span> ${v("psy-gostos")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Desgostos:</span> ${v("psy-desgostos")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Medos:</span> ${v("psy-medos")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Traumas:</span> ${v("psy-traumas")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Objetivos:</span> ${v("psy-objetivos")}</div><div class="jjk-profile-item"><span class="jjk-profile-label">Sonhos:</span> ${v("psy-sonhos")}</div></div></div></div><div class="jjk-tab-content"><div class="jjk-dossier-block"><h3 class="jjk-block-title">Aptidões</h3>${skillH}</div><div class="jjk-dossier-block"><h3 class="jjk-block-title">Técnicas</h3>${techH}</div><div class="jjk-dossier-block jjk-domain-expansion"><h3 class="jjk-block-title">Expansão de Domínio</h3><div class="jjk-technique-group"><h4 class="jjk-technique-title"><a href="${v("domain-link")}">${v("domain-name")}</a></h4><div class="jjk-technique-desc jjk-scrollable-content">${br(v("domain-desc"))}</div></div></div><div class="jjk-dossier-block"><h3 class="jjk-block-title">Equipamento</h3><div class="jjk-dossier-card-list">${equipH}</div></div></div><div class="jjk-tab-content"><div class="jjk-dossier-block"><h3 class="jjk-block-title">Particularidade</h3><div class="jjk-particularidade-card"><h4 class="jjk-particularidade-name"><a href="${v("part-link")}">${v("part-name")}</a></h4><div class="jjk-particularidade-section"><h5 class="jjk-particularidade-section-title">Descrição</h5><div class="jjk-particularidade-desc jjk-scrollable-content">${br(v("part-desc"))}</div></div><div class="jjk-particularidade-section"><h5 class="jjk-particularidade-section-title">Notas</h5><div class="jjk-particularidade-notes jjk-scrollable-content">${br(v("part-notes"))}</div></div></div></div><div class="jjk-dossier-block"><h3 class="jjk-block-title">Características</h3><div class="jjk-dossier-card-list">${traitH}</div></div></div><div class="jjk-tab-content"><div class="jjk-dossier-block"><h3 class="jjk-block-title">Relações</h3><div class="jjk-dossier-card-list">${relH}</div></div></div><div class="jjk-tab-content"><div class="jjk-dossier-block"><h3 class="jjk-block-title">Biografia</h3><div class="jjk-dossier-textarea jjk-scrollable-content">${br(v("bio-text"))}</div></div></div></div></div></div>`;
+        document.getElementById("output-html").value=tpl.replace(/\s+/g," ").trim();
+    }
+
+    generatorForm.addEventListener("input", e => {
+        if(e.target.classList.contains("watch-save")) saveData();
+        if(e.target.classList.contains("modifier-trigger")||e.target.closest("#traits-container")||e.target.classList.contains("xp-input-total")) recalcAll();
+        else generateHTML();
+    });
+
+    // Theme Color Logic
+    const hexToHSL=(hex)=>{let r=0,g=0,b=0;if(hex.length==4){r="0x"+hex[1]+hex[1];g="0x"+hex[2]+hex[2];b="0x"+hex[3]+hex[3];}else if(hex.length==7){r="0x"+hex[1]+hex[2];g="0x"+hex[3]+hex[4];b="0x"+hex[5]+hex[6];}r/=255;g/=255;b/=255;let cmin=Math.min(r,g,b),cmax=Math.max(r,g,b),delta=cmax-cmin,h=0,s=0,l=0;if(delta==0)h=0;else if(cmax==r)h=((g-b)/delta)%6;else if(cmax==g)h=(b-r)/delta+2;else h=(r-g)/delta+4;h=Math.round(h*60);if(h<0)h+=360;l=(cmax+cmin)/2;s=delta==0?0:delta/(1-Math.abs(2*l-1));s=+(s*100).toFixed(1);l=+(l*100).toFixed(1);return{h,s,l};};
+    const updateTheme=(hex)=>{const hsl=hexToHSL(hex);document.documentElement.style.setProperty("--main-hue",hsl.h);document.documentElement.style.setProperty("--jjk-purple",`hsl(${hsl.h},${hsl.s}%,${hsl.l}%)`);document.documentElement.style.setProperty("--jjk-purple-light",`hsl(${hsl.h},${hsl.s}%,${Math.min(hsl.l+15,90)}%)`);generateHTML();};
+    const cPicker=document.getElementById("theme-color"),hInput=document.getElementById("theme-hex");
+    cPicker.addEventListener("input",e=>{hInput.value=e.target.value; updateTheme(e.target.value);});
+    hInput.addEventListener("input",e=>{if(e.target.value.length===7&&e.target.value.startsWith("#")){cPicker.value=e.target.value;updateTheme(e.target.value);}});
+
+    // Helper Buttons
+    const techL=document.getElementById("technique-groups-list"); document.getElementById("add-technique-group").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remover</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save"></textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn" style="margin-top:5px;">+ Feitiço</button></div>`;techL.appendChild(d);});
+    document.body.addEventListener("click",e=>{
+        if(e.target.classList.contains("remove-corner")){e.target.closest(".dynamic-card, .sub-card").remove();recalcAll();saveData();}
+        if(e.target.classList.contains("add-spell-btn")){const l=e.target.previousElementSibling;const s=document.createElement("div");s.className="sub-card";s.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save"></textarea></div>`;l.appendChild(s);}
+    });
+    const equipL=document.getElementById("equipment-list");document.getElementById("add-equipment").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save"></textarea></div>`;equipL.appendChild(d);});
+    const relL=document.getElementById("relations-list");document.getElementById("add-relation").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo">Vivo</option><option value="morto">Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save"></textarea></div>`;relL.appendChild(d);});
+    document.getElementById("copy-html-btn").addEventListener("click",()=>{document.getElementById("output-html").select();document.execCommand("copy");});
+    document.getElementById("clear-form-btn").addEventListener("click",()=>{localStorage.removeItem('goldenAgeData');location.reload();});
+
+    // === PARSER UPDATE (CARREGAR FICHA) ===
+    document.getElementById("load-html-btn").addEventListener("click",()=>{
+        const c=document.getElementById("input-html").value, p=new DOMParser(), d=p.parseFromString(c,"text/html");
+        if(!d.querySelector(".jjk-dossier-container")) return showAlert("Erro","HTML Inválido.");
+        generatorForm.reset(); techL.innerHTML=""; equipL.innerHTML=""; traitsContainer.innerHTML=""; relL.innerHTML="";
+        
+        const sVal=(i,v)=>{if(document.getElementById(i))document.getElementById(i).value=v;}, sGet=(s)=>d.querySelector(s)?.textContent.trim()||"";
+        sVal("char-name",sGet(".jjk-dossier-name")); sVal("char-nickname",sGet(".jjk-dossier-apelido")); sVal("char-grade",sGet(".jjk-dossier-grau").replace("Grau ",""));
+        const bg=d.querySelector(".jjk-dossier-header")?.style.backgroundImage; if(bg)sVal("char-header-img",bg.slice(5,-2));
+        const pic=d.querySelector(".jjk-dossier-profile-pic")?.src; if(pic)sVal("char-profile-pic",pic);
+
+        // Load Traits (Enhanced)
+        d.querySelectorAll(".jjk-card-positive, .jjk-card-negative").forEach(t=>{
+            const name = t.querySelector(".jjk-dossier-card-title").textContent;
+            const desc = t.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n");
+            const type = t.classList.contains("jjk-card-positive") ? 'pos' : 'neg';
+            addManualTrait(type, name, desc);
+        });
+
+        // Basic Info
+        d.querySelectorAll(".jjk-info-item").forEach(i=>{
+            const l=i.querySelector(".jjk-info-label").textContent, v=i.querySelector(".jjk-info-value").textContent;
+            if(l.includes("Idade"))sVal("char-age",v); if(l.includes("Espécie"))sVal("char-species",v); if(l.includes("Alinhamento"))sVal("char-alignment",v);
+        });
+        d.querySelectorAll(".jjk-dossier-status-item").forEach(i=>{
+            const n=i.querySelector(".jjk-dossier-status-name").textContent, v=i.querySelector(".jjk-dossier-status-value").textContent;
+            if(n.includes("Vigor"))sVal("char-hp",v); if(n.includes("Energia"))sVal("char-ea",v);
+        });
+        d.querySelectorAll(".jjk-dossier-attr-item").forEach(i=>{
+            const n=i.querySelector(".jjk-dossier-attr-name").textContent, v=i.querySelector(".jjk-dossier-attr-value").textContent;
+            const m={"Força":"attr-for","Destreza":"attr-des","Inteligência":"attr-int","Sorte":"attr-sor","Vigor":"attr-vig","Energia":"attr-ene","Fonte":"attr-fon"};
+            if(m[n])sVal(m[n],v);
+        });
+
+        // Tabs Parsing
+        const tabs=d.querySelectorAll(".jjk-tab-content");
+        if(tabs[0]){
+            const b=tabs[0].querySelectorAll(".jjk-dossier-block");
+            if(b[0]){ sVal("profile-phys-desc",b[0].querySelector(".jjk-profile-description").innerHTML.replace(/<br>/g,"\n").trim()); b[0].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Cabelo:"))sVal("phys-cabelo",t.split(":")[1].trim());if(t.includes("Olhos:"))sVal("phys-olhos",t.split(":")[1].trim());if(t.includes("Pele:"))sVal("phys-pele",t.split(":")[1].trim());if(t.includes("Altura:"))sVal("phys-altura",t.split(":")[1].trim());if(t.includes("Peso:"))sVal("phys-peso",t.split(":")[1].trim());if(t.includes("Extras:"))sVal("phys-extras",t.split(":")[1].trim());}); }
+            if(b[1]){ sVal("profile-psy-desc",b[1].querySelector(".jjk-profile-description").innerHTML.replace(/<br>/g,"\n").trim()); b[1].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Gostos:"))sVal("psy-gostos",t.split(":")[1].trim());if(t.includes("Desgostos:"))sVal("psy-desgostos",t.split(":")[1].trim());if(t.includes("Medos:"))sVal("psy-medos",t.split(":")[1].trim());if(t.includes("Traumas:"))sVal("psy-traumas",t.split(":")[1].trim());if(t.includes("Objetivos:"))sVal("psy-objetivos",t.split(":")[1].trim());if(t.includes("Sonhos:"))sVal("psy-sonhos",t.split(":")[1].trim());}); }
+        }
+        if(tabs[1]){
+            tabs[1].querySelectorAll(".jjk-technique-group").forEach(g=>{
+                if(g.parentElement.classList.contains("jjk-domain-expansion")) return;
+                const sp=[]; g.querySelectorAll(".jjk-dossier-card-item").forEach(s=>sp.push({name:s.querySelector(".jjk-dossier-card-title").textContent,desc:s.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n")}));
+                const l=g.querySelector(".sub-list .spell-list"); // mock
+                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${g.querySelector(".jjk-technique-title a").textContent}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${g.querySelector(".jjk-technique-title a").href}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea tech-group-desc watch-save">${g.querySelector(".jjk-technique-desc").innerHTML.replace(/<br>/g,"\n")}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
+                const sl=div.querySelector(".spell-list"); sp.forEach(s=>{const sd=document.createElement("div");sd.className="dynamic-sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+            });
+            const dom=tabs[1].querySelector(".jjk-domain-expansion .jjk-technique-group"); if(dom){sVal("domain-name",dom.querySelector(".jjk-technique-title a").textContent); sVal("domain-link",dom.querySelector(".jjk-technique-title a").href); sVal("domain-desc",dom.querySelector(".jjk-technique-desc").innerHTML.replace(/<br>/g,"\n"));}
+            tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n")}</textarea></div>`;equipL.appendChild(div);});
+        }
+        if(tabs[2]){
+            const pc=tabs[2].querySelector(".jjk-particularidade-card");
+            if(pc){sVal("part-name",pc.querySelector(".jjk-particularidade-name a").textContent); sVal("part-link",pc.querySelector(".jjk-particularidade-name a").href); sVal("part-desc",pc.querySelector(".jjk-particularidade-desc").innerHTML.replace(/<br>/g,"\n")); sVal("part-notes",pc.querySelector(".jjk-particularidade-notes").innerHTML.replace(/<br>/g,"\n"));}
+        }
+        if(tabs[3]){
+            tabs[3].querySelectorAll(".jjk-dossier-card-item").forEach(c=>{
+                let st="incerto"; const t=c.querySelector(".jjk-dossier-card-title"); if(t.querySelector(".jjk-status-vivo"))st="vivo"; if(t.querySelector(".jjk-status-morto"))st="morto";
+                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${t.firstChild.textContent.trim()}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${st==='vivo'?'selected':''}>Vivo</option><option value="morto" ${st==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent.replace("Relação: ","")}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n")}</textarea></div>`;relL.appendChild(div);
+            });
+        }
+        if(tabs[4]){sVal("bio-text",tabs[4].querySelector(".jjk-dossier-textarea").innerHTML.replace(/<br>/g,"\n"));}
+
+        // XP Calc Reverse
+        const mods = getActiveModifiers();
+        d.querySelectorAll(".jjk-dossier-skill-item").forEach(item => {
+            const name = item.querySelector(".jjk-dossier-skill-name").textContent;
+            const lvl = parseInt(item.querySelector(".jjk-dossier-skill-level").textContent.replace("Nv. ", ""));
+            const xpString = item.querySelector(".jjk-dossier-skill-xp").textContent; 
+            const currentProgress = parseInt(xpString.split("/")[0]) || 0;
+            const aptObj = aptitudesDB.find(a => a.name === name);
+            if(aptObj) {
+                let multiplier = 1.0;
+                // Simples re-check de regras ativas
+                mods.forEach(r=>{if(r.ty==='GLOBAL'||(r.ty==='TYPE'&&r.tg===aptObj.type)||(r.ty==='ID'&&r.tg===aptObj.id))multiplier*=r.m;});
+                const tableEntry = xpTable.find(x => x.l === lvl);
+                if(tableEntry) {
+                    const base = Math.floor(tableEntry.x * multiplier);
+                    document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
+                } else if(lvl === 0) document.getElementById(`${aptObj.id}-xp`).value = currentProgress;
+            }
+        });
+
+        recalcAll();
+        saveData(); // Save loaded data
+        showAlert("Sucesso", "Ficha carregada.");
+    });
+
+    // === AUTO SAVE / LOAD ===
+    function saveData() {
+        const data = {
+            statics: {},
+            traits: [],
+            techs: [],
+            equips: [],
+            rels: [],
+            apts: {}
+        };
+        // Statics
+        document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
+        document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
+        
+        // Dynamic
+        document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
+            data.traits.push({
+                name: r.querySelector(".trait-name").value,
+                desc: r.querySelector(".trait-desc").value,
+                type: r.classList.contains("positive")?'pos':'neg'
+            });
+        });
+        document.querySelectorAll("#technique-groups-list .dynamic-card").forEach(c=>{
+            const sp=[]; c.querySelectorAll(".dynamic-sub-card").forEach(s=>sp.push({name:s.querySelector(".spell-name").value, desc:s.querySelector(".spell-desc").value}));
+            data.techs.push({ name:c.querySelector(".tech-group-name").value, link:c.querySelector(".tech-group-link").value, desc:c.querySelector(".tech-group-desc").value, spells:sp });
+        });
+        document.querySelectorAll("#equipment-list .dynamic-card").forEach(c=>{
+            data.equips.push({ name:c.querySelector(".equip-name").value, type:c.querySelector(".equip-type").value, desc:c.querySelector(".equip-desc").value });
+        });
+        document.querySelectorAll("#relations-list .dynamic-card").forEach(c=>{
+            data.rels.push({ name:c.querySelector(".rel-name").value, status:c.querySelector(".rel-status").value, type:c.querySelector(".rel-type").value, desc:c.querySelector(".rel-desc").value });
+        });
+        
+        localStorage.setItem('goldenAgeData', JSON.stringify(data));
+        const ind = document.getElementById("autoSaveMsg");
+        ind.classList.add("active");
+        setTimeout(()=>ind.classList.remove("active"), 1500);
+    }
+
+    function loadData() {
+        const json = localStorage.getItem('goldenAgeData');
+        if(!json) return;
+        const data = JSON.parse(json);
+        
+        // Static
+        for(let id in data.statics) { if(document.getElementById(id)) document.getElementById(id).value = data.statics[id]; }
+        for(let id in data.apts) { if(document.getElementById(id)) document.getElementById(id).value = data.apts[id]; }
+        
+        // Dynamic
+        data.traits.forEach(t => addManualTrait(t.type, t.name, t.desc));
+        data.techs.forEach(t => {
+            const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(d);
+            const sl=d.querySelector(".spell-list"); t.spells.forEach(s=>{const sd=document.createElement("div");sd.className="dynamic-sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+        });
+        data.equips.forEach(c => {
+             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.desc}</textarea></div>`;equipL.appendChild(d);
+        });
+        data.rels.forEach(c => {
+            const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${c.status==='vivo'?'selected':''}>Vivo</option><option value="morto" ${c.status==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.desc}</textarea></div>`;relL.appendChild(d);
+        });
+
+        // Add Listeners to dynamic elements just created
+        document.querySelectorAll('.watch-save').forEach(el => el.addEventListener('input', saveData));
+        recalcAll();
+    }
+
+    loadData(); // Load on startup
+});
+</script>
+</body>
+</html>
