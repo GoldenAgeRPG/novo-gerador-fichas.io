@@ -29,7 +29,7 @@
 
   /* --- RESET & BASE --- */
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-  
+   
   body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-dark);
@@ -89,7 +89,7 @@
     transition: border-color 0.3s;
   }
   .gen-section:hover { border-color: rgba(255,255,255,0.2); }
-  
+   
   .sec-title {
     font-family: 'Cinzel', serif;
     font-size: 1.4em;
@@ -110,7 +110,7 @@
   /* --- INPUTS --- */
   .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
   .form-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; }
-  
+   
   input, select, textarea {
     background-color: var(--bg-input);
     border: 1px solid var(--border);
@@ -128,6 +128,25 @@
   }
   textarea { min-height: 80px; resize: vertical; }
 
+  /* --- BBCODE TOOLBAR --- */
+  .bbcode-toolbar {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+  }
+  .btn-bbcode {
+      background: #222;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.75em;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+  }
+  .btn-bbcode:hover { background: #333; color: white; border-color: var(--gold); }
+
   /* --- BOTÕES --- */
   .btn {
     background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
@@ -144,13 +163,13 @@
   }
   .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
   .btn:active { transform: translateY(0); }
-  
+   
   .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
   .btn-outline:hover { background: var(--gold-glow); color: white; }
-  
+   
   .btn-pos { background: rgba(76, 175, 80, 0.2); border: 1px solid var(--success); color: var(--success); }
   .btn-pos:hover { background: var(--success); color: #000; }
-  
+   
   .btn-neg { background: rgba(211, 47, 47, 0.2); border: 1px solid var(--danger); color: var(--danger); }
   .btn-neg:hover { background: var(--danger); color: white; }
 
@@ -166,7 +185,7 @@
       font-family: 'Cinzel', serif; 
       font-size: 1.1em;
   }
-  
+   
   .apt-card {
       background: rgba(255,255,255,0.03);
       padding: 12px;
@@ -265,7 +284,7 @@
   }
   .trait-row.t-pos { border-left: 3px solid var(--success); }
   .trait-row.t-neg { border-left: 3px solid var(--danger); }
-  
+   
   .trait-info { flex: 1; }
   .t-name { font-weight: bold; color: white; display: block; }
   .t-cost { font-size: 0.8em; color: var(--gold); margin-left: 5px; }
@@ -290,7 +309,7 @@
   .dynamic-card { background: var(--bg-input); padding: 15px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px; position: relative; }
   .trait-card.positive { border-left: 3px solid var(--success); }
   .trait-card.negative { border-left: 3px solid var(--danger); }
-  
+   
   .remove-corner { position: absolute; top: 10px; right: 10px; font-size: 0.8em; background: #333; color: #fff; border:none; padding: 2px 8px; cursor: pointer; border-radius: 3px;}
   .remove-corner:hover { background: var(--danger); }
   .sub-list { margin-top: 10px; padding-left: 15px; border-left: 2px solid var(--gold); }
@@ -324,7 +343,7 @@
 </div>
 
 <div class="generator-container">
-  
+   
   <div class="gen-header">
     <div class="header-brand">
         <h1>Golden Age</h1>
@@ -445,8 +464,20 @@
       </div>
       <div class="g-grid-2">
           <div class="form-group"><label class="form-label">Link</label><input type="url" id="part-link" class="watch-save"></div>
-          <div class="form-group"><label class="form-label">Notas/Sistemas</label><input type="text" id="part-notes" class="watch-save"></div>
       </div>
+
+      <div class="form-group">
+          <label class="form-label">Notas/Sistemas</label>
+          <div class="bbcode-toolbar">
+              <button type="button" class="btn-bbcode" onclick="insertTag('part-notes', '[b]', '[/b]')">Negrito</button>
+              <button type="button" class="btn-bbcode" onclick="insertTag('part-notes', '[color=#33ff66]', '[/color]')">Verde</button>
+              <button type="button" class="btn-bbcode" onclick="insertTag('part-notes', '[color=#ff3333]', '[/color]')">Vermelho</button>
+              <button type="button" class="btn-bbcode" onclick="insertTag('part-notes', '+ ', '')">+ Marcador</button>
+              <button type="button" class="btn-bbcode" onclick="insertTag('part-notes', '<br>', '')">Quebra de Linha</button>
+          </div>
+          <textarea id="part-notes" class="watch-save" style="height: 150px; font-family: monospace;"></textarea>
+      </div>
+
       <div class="form-group">
           <label class="form-label">Descrição da Particularidade</label>
           <textarea id="part-desc" class="modifier-trigger watch-save"></textarea>
@@ -496,7 +527,7 @@
     </div>
 
   </form>
-  
+   
   <div class="gen-section" style="border-color:var(--gold);">
     <div class="sec-title">Código Final</div>
     <textarea id="output-html" readonly style="font-family:monospace; color:var(--gold); font-size:0.8em;"></textarea>
@@ -506,15 +537,83 @@
 </div>
 
 <script>
+// FUNÇÃO GLOBAL DE INSERIR TAGS (BBCODE)
+function insertTag(fieldId, openTag, closeTag) {
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const text = el.value;
+    const before = text.substring(0, start);
+    const selected = text.substring(start, end);
+    const after = text.substring(end);
+    
+    el.value = before + openTag + selected + closeTag + after;
+    
+    // Reposicionar cursor
+    const newPos = start + openTag.length + selected.length + (selected.length > 0 ? closeTag.length : 0);
+    el.focus();
+    el.setSelectionRange(newPos, newPos);
+    
+    // Disparar evento de input para salvar
+    const event = new Event('input', { bubbles: true });
+    el.dispatchEvent(event);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const generatorForm = document.getElementById("sheet-generator-form");
     if (!generatorForm) return;
 
-    // === XP DATA ===
+    // === MODAL LOGIC ===
+    const modalOverlay = document.getElementById("customModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalText = document.getElementById("modalText");
+    const modalActions = document.getElementById("modalActions");
+
+    function closeModal() {
+        modalOverlay.classList.remove("active");
+    }
+
+    function showAlert(title, text) {
+        modalTitle.textContent = title;
+        modalText.textContent = text;
+        modalActions.innerHTML = "";
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.textContent = "OK";
+        btn.onclick = closeModal;
+        modalActions.appendChild(btn);
+        modalOverlay.classList.add("active");
+    }
+
+    function showConfirm(title, text, callback) {
+        modalTitle.textContent = title;
+        modalText.textContent = text;
+        modalActions.innerHTML = "";
+
+        const btnCancel = document.createElement("button");
+        btnCancel.className = "btn btn-neg";
+        btnCancel.textContent = "Cancelar";
+        btnCancel.onclick = closeModal;
+
+        const btnConfirm = document.createElement("button");
+        btnConfirm.className = "btn btn-pos";
+        btnConfirm.textContent = "Confirmar";
+        btnConfirm.onclick = () => {
+            callback();
+            closeModal();
+        };
+
+        modalActions.appendChild(btnCancel);
+        modalActions.appendChild(btnConfirm);
+        modalOverlay.classList.add("active");
+    }
+
+    // === XP DATA & APTITUDES ===
     const xpTable=[{l:1,x:200},{l:2,x:500},{l:3,x:900},{l:4,x:1400},{l:5,x:2000},{l:6,x:2700},{l:7,x:3500},{l:8,x:4400},{l:9,x:5400},{l:10,x:6500},{l:11,x:8600},{l:12,x:10800},{l:13,x:13100},{l:14,x:15500},{l:15,x:18000},{l:16,x:20600},{l:17,x:23300},{l:18,x:26100},{l:19,x:29000},{l:20,x:32000},{l:21,x:36000},{l:22,x:40100},{l:23,x:44300},{l:24,x:48600},{l:25,x:53000},{l:26,x:57500},{l:27,x:62100},{l:28,x:66800},{l:29,x:71600},{l:30,x:76500},{l:31,x:82400},{l:32,x:88400},{l:33,x:94500},{l:34,x:100700},{l:35,x:107000},{l:36,x:113400},{l:37,x:119900},{l:38,x:126500},{l:39,x:133200},{l:40,x:140000},{l:41,x:147800},{l:42,x:155700},{l:43,x:163700},{l:44,x:171800},{l:45,x:180000},{l:46,x:188300},{l:47,x:196700},{l:48,x:205200},{l:49,x:213800},{l:50,x:222500}];
     const aptitudesDB=[{id:"apt-combate-desarmado",name:"Combate Desarmado",type:"FOR"},{id:"apt-espadas-longas",name:"Espadas Longas",type:"FOR"},{id:"apt-machados-longos",name:"Machados Longos",type:"FOR"},{id:"apt-martelos-longos",name:"Martelos Longos",type:"FOR"},{id:"apt-clavas",name:"Clavas",type:"FOR"},{id:"apt-escalada",name:"Escalada",type:"FOR"},{id:"apt-acrobacia",name:"Acrobacia",type:"FOR"},{id:"apt-espadas-curtas",name:"Espadas Curtas",type:"DES"},{id:"apt-adagas",name:"Adagas",type:"DES"},{id:"apt-laminas-duplas",name:"Lâminas Duplas",type:"DES"},{id:"apt-machados-curtos",name:"Machados Curtos",type:"DES"},{id:"apt-martelos-curtos",name:"Martelos Curtos",type:"DES"},{id:"apt-lancas",name:"Lanças",type:"DES"},{id:"apt-foices",name:"Foices",type:"DES"},{id:"apt-bastoes",name:"Bastões",type:"DES"},{id:"apt-correntes",name:"Correntes",type:"DES"},{id:"apt-arremesso",name:"Arremesso de Armas",type:"DES"},{id:"apt-armas-fogo",name:"Armas de Fogo",type:"DES"},{id:"apt-furtividade",name:"Furtividade",type:"DES"},{id:"apt-natacao",name:"Natação",type:"DES"},{id:"apt-corrida",name:"Corrida",type:"DES"},{id:"apt-feiticos",name:"Feitiços",type:"INT"},{id:"apt-barreiras",name:"Barreiras",type:"INT"},{id:"apt-pactos",name:"Pactos",type:"INT"},{id:"apt-percepcao-magica",name:"Percepção Mágica",type:"INT"},{id:"apt-primeiros-socorros",name:"Primeiros Socorros",type:"INT"},{id:"apt-tecnica-reversa",name:"Técnica Reversa",type:"INT"},{id:"apt-percepcao-visual",name:"Percepção Visual",type:"INT"},{id:"apt-sobrevivencia",name:"Sobrevivência",type:"INT"}];
 
-    // === UI BUILDER: APTITUDES ===
+    // === UI BUILDER ===
     const aptContainer = document.getElementById("aptitudes-container");
     let lastType="";
     aptitudesDB.forEach(a=>{
@@ -526,9 +625,7 @@ document.addEventListener("DOMContentLoaded", function () {
         aptContainer.appendChild(d);
     });
 
-    // === TRAIT MANAGEMENT (MANUAL) ===
     const traitsContainer = document.getElementById("traits-container");
-    
     function addManualTrait(type, name="", desc=""){
         const div = document.createElement("div");
         div.className = `dynamic-card trait-card ${type==='pos'?'positive':'negative'}`;
@@ -610,7 +707,7 @@ document.addEventListener("DOMContentLoaded", function () {
         generateHTML();
     }
 
-    // LISTENER GLOBAL (CORREÇÃO DE BOTÃO +1)
+    // LISTENER GLOBAL (BOTÃO +1)
     document.body.addEventListener('click', e => {
         if(e.target.classList.contains('btn-levelup')){
             const id = e.target.dataset.id;
@@ -634,10 +731,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // === GENERATE HTML ===
+    // === GENERATE HTML (CORRIGIDO PARA QUEBRA DE LINHA) ===
     function generateHTML(){
         const v=(id)=>document.getElementById(id).value;
-        const br=(s)=>s.replace(/\n/g,"<br>");
+        const br=(s)=>s.replace(/\r\n|\r|\n/g,"<br>"); // Converte Enter visual em <br> para o código
         let skillH="";
         ["FOR","DES","INT"].forEach(t=>{
             skillH+=`<div class="jjk-dossier-skills-category"><h4 class="jjk-category-title">${t==="FOR"?"Força":t==="DES"?"Destreza":"Inteligência"}</h4><div class="jjk-dossier-skills-list">`;
@@ -697,21 +794,31 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("copy-html-btn").addEventListener("click",()=>{document.getElementById("output-html").select();document.execCommand("copy");});
     document.getElementById("clear-form-btn").addEventListener("click",()=>{localStorage.removeItem('goldenAgeData');location.reload();});
 
-    // === PARSER UPDATE (CARREGAR FICHA) ===
+    // === PARSER UPDATE (CARREGAR FICHA - COM CORREÇÃO DE QUEBRA DE LINHA) ===
     document.getElementById("load-html-btn").addEventListener("click",()=>{
         const c=document.getElementById("input-html").value, p=new DOMParser(), d=p.parseFromString(c,"text/html");
         if(!d.querySelector(".jjk-dossier-container")) return showAlert("Erro","HTML Inválido.");
         generatorForm.reset(); techL.innerHTML=""; equipL.innerHTML=""; traitsContainer.innerHTML=""; relL.innerHTML="";
         
-        const sVal=(i,v)=>{if(document.getElementById(i))document.getElementById(i).value=v;}, sGet=(s)=>d.querySelector(s)?.textContent.trim()||"";
+        // HELPER CORRIGIDO PARA RESGATAR HTML COM QUEBRAS DE LINHA
+        const sGet = (s) => d.querySelector(s)?.textContent.trim() || "";
+        const sGetHTML = (s) => {
+            const el = d.querySelector(s);
+            if (!el) return "";
+            // Substitui <br> por \n antes de pegar o texto, preservando formatação no textarea
+            return el.innerHTML.replace(/<br\s*\/?>/gi, "\n").trim();
+        };
+        const sVal=(i,v)=>{if(document.getElementById(i))document.getElementById(i).value=v;};
+
         sVal("char-name",sGet(".jjk-dossier-name")); sVal("char-nickname",sGet(".jjk-dossier-apelido")); sVal("char-grade",sGet(".jjk-dossier-grau").replace("Grau ",""));
         const bg=d.querySelector(".jjk-dossier-header")?.style.backgroundImage; if(bg)sVal("char-header-img",bg.slice(5,-2));
         const pic=d.querySelector(".jjk-dossier-profile-pic")?.src; if(pic)sVal("char-profile-pic",pic);
 
-        // Load Traits (Enhanced)
+        // Load Traits
         d.querySelectorAll(".jjk-card-positive, .jjk-card-negative").forEach(t=>{
             const name = t.querySelector(".jjk-dossier-card-title").textContent;
-            const desc = t.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n");
+            // Usa sGetHTML na descrição dos traits também
+            const desc = t.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim();
             const type = t.classList.contains("jjk-card-positive") ? 'pos' : 'neg';
             addManualTrait(type, name, desc);
         });
@@ -733,33 +840,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Tabs Parsing
         const tabs=d.querySelectorAll(".jjk-tab-content");
+        
+        // TAB 1: PERFIL
         if(tabs[0]){
             const b=tabs[0].querySelectorAll(".jjk-dossier-block");
-            if(b[0]){ sVal("profile-phys-desc",b[0].querySelector(".jjk-profile-description").innerHTML.replace(/<br>/g,"\n").trim()); b[0].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Cabelo:"))sVal("phys-cabelo",t.split(":")[1].trim());if(t.includes("Olhos:"))sVal("phys-olhos",t.split(":")[1].trim());if(t.includes("Pele:"))sVal("phys-pele",t.split(":")[1].trim());if(t.includes("Altura:"))sVal("phys-altura",t.split(":")[1].trim());if(t.includes("Peso:"))sVal("phys-peso",t.split(":")[1].trim());if(t.includes("Extras:"))sVal("phys-extras",t.split(":")[1].trim());}); }
-            if(b[1]){ sVal("profile-psy-desc",b[1].querySelector(".jjk-profile-description").innerHTML.replace(/<br>/g,"\n").trim()); b[1].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Gostos:"))sVal("psy-gostos",t.split(":")[1].trim());if(t.includes("Desgostos:"))sVal("psy-desgostos",t.split(":")[1].trim());if(t.includes("Medos:"))sVal("psy-medos",t.split(":")[1].trim());if(t.includes("Traumas:"))sVal("psy-traumas",t.split(":")[1].trim());if(t.includes("Objetivos:"))sVal("psy-objetivos",t.split(":")[1].trim());if(t.includes("Sonhos:"))sVal("psy-sonhos",t.split(":")[1].trim());}); }
+            if(b[0]){ 
+                const pEl = b[0].querySelector(".jjk-profile-description");
+                if(pEl) sVal("profile-phys-desc", pEl.innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());
+                b[0].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Cabelo:"))sVal("phys-cabelo",t.split(":")[1].trim());if(t.includes("Olhos:"))sVal("phys-olhos",t.split(":")[1].trim());if(t.includes("Pele:"))sVal("phys-pele",t.split(":")[1].trim());if(t.includes("Altura:"))sVal("phys-altura",t.split(":")[1].trim());if(t.includes("Peso:"))sVal("phys-peso",t.split(":")[1].trim());if(t.includes("Extras:"))sVal("phys-extras",t.split(":")[1].trim());}); 
+            }
+            if(b[1]){ 
+                const pEl = b[1].querySelector(".jjk-profile-description");
+                if(pEl) sVal("profile-psy-desc", pEl.innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());
+                b[1].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Gostos:"))sVal("psy-gostos",t.split(":")[1].trim());if(t.includes("Desgostos:"))sVal("psy-desgostos",t.split(":")[1].trim());if(t.includes("Medos:"))sVal("psy-medos",t.split(":")[1].trim());if(t.includes("Traumas:"))sVal("psy-traumas",t.split(":")[1].trim());if(t.includes("Objetivos:"))sVal("psy-objetivos",t.split(":")[1].trim());if(t.includes("Sonhos:"))sVal("psy-sonhos",t.split(":")[1].trim());}); 
+            }
         }
+        
+        // TAB 2: COMBATE
         if(tabs[1]){
             tabs[1].querySelectorAll(".jjk-technique-group").forEach(g=>{
                 if(g.parentElement.classList.contains("jjk-domain-expansion")) return;
-                const sp=[]; g.querySelectorAll(".jjk-dossier-card-item").forEach(s=>sp.push({name:s.querySelector(".jjk-dossier-card-title").textContent,desc:s.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n")}));
-                const l=g.querySelector(".sub-list .spell-list"); // mock
-                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${g.querySelector(".jjk-technique-title a").textContent}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${g.querySelector(".jjk-technique-title a").href}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea tech-group-desc watch-save">${g.querySelector(".jjk-technique-desc").innerHTML.replace(/<br>/g,"\n")}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
+                const sp=[]; g.querySelectorAll(".jjk-dossier-card-item").forEach(s=>sp.push({name:s.querySelector(".jjk-dossier-card-title").textContent,desc:s.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}));
+                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${g.querySelector(".jjk-technique-title a").textContent}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${g.querySelector(".jjk-technique-title a").href}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea tech-group-desc watch-save">${g.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
                 const sl=div.querySelector(".spell-list"); sp.forEach(s=>{const sd=document.createElement("div");sd.className="dynamic-sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
             });
-            const dom=tabs[1].querySelector(".jjk-domain-expansion .jjk-technique-group"); if(dom){sVal("domain-name",dom.querySelector(".jjk-technique-title a").textContent); sVal("domain-link",dom.querySelector(".jjk-technique-title a").href); sVal("domain-desc",dom.querySelector(".jjk-technique-desc").innerHTML.replace(/<br>/g,"\n"));}
-            tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n")}</textarea></div>`;equipL.appendChild(div);});
+            const dom=tabs[1].querySelector(".jjk-domain-expansion .jjk-technique-group"); 
+            if(dom){sVal("domain-name",dom.querySelector(".jjk-technique-title a").textContent); sVal("domain-link",dom.querySelector(".jjk-technique-title a").href); sVal("domain-desc",dom.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
+            tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;equipL.appendChild(div);});
         }
+        
+        // TAB 3: PARTICULARIDADE (ATUALIZADO)
         if(tabs[2]){
             const pc=tabs[2].querySelector(".jjk-particularidade-card");
-            if(pc){sVal("part-name",pc.querySelector(".jjk-particularidade-name a").textContent); sVal("part-link",pc.querySelector(".jjk-particularidade-name a").href); sVal("part-desc",pc.querySelector(".jjk-particularidade-desc").innerHTML.replace(/<br>/g,"\n")); sVal("part-notes",pc.querySelector(".jjk-particularidade-notes").innerHTML.replace(/<br>/g,"\n"));}
+            if(pc){
+                sVal("part-name",pc.querySelector(".jjk-particularidade-name a").textContent); 
+                sVal("part-link",pc.querySelector(".jjk-particularidade-name a").href); 
+                sVal("part-desc",pc.querySelector(".jjk-particularidade-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()); 
+                sVal("part-notes",pc.querySelector(".jjk-particularidade-notes").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());
+            }
         }
+        
+        // TAB 4: RELAÇÕES
         if(tabs[3]){
             tabs[3].querySelectorAll(".jjk-dossier-card-item").forEach(c=>{
                 let st="incerto"; const t=c.querySelector(".jjk-dossier-card-title"); if(t.querySelector(".jjk-status-vivo"))st="vivo"; if(t.querySelector(".jjk-status-morto"))st="morto";
-                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${t.firstChild.textContent.trim()}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${st==='vivo'?'selected':''}>Vivo</option><option value="morto" ${st==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent.replace("Relação: ","")}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br>/g,"\n")}</textarea></div>`;relL.appendChild(div);
+                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${t.firstChild.textContent.trim()}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${st==='vivo'?'selected':''}>Vivo</option><option value="morto" ${st==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent.replace("Relação: ","")}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;relL.appendChild(div);
             });
         }
-        if(tabs[4]){sVal("bio-text",tabs[4].querySelector(".jjk-dossier-textarea").innerHTML.replace(/<br>/g,"\n"));}
+        
+        // TAB 5: BIO
+        if(tabs[4]){sVal("bio-text",tabs[4].querySelector(".jjk-dossier-textarea").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
 
         // XP Calc Reverse
         const mods = getActiveModifiers();
@@ -771,7 +901,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const aptObj = aptitudesDB.find(a => a.name === name);
             if(aptObj) {
                 let multiplier = 1.0;
-                // Simples re-check de regras ativas
                 mods.forEach(r=>{if(r.ty==='GLOBAL'||(r.ty==='TYPE'&&r.tg===aptObj.type)||(r.ty==='ID'&&r.tg===aptObj.id))multiplier*=r.m;});
                 const tableEntry = xpTable.find(x => x.l === lvl);
                 if(tableEntry) {
@@ -796,11 +925,9 @@ document.addEventListener("DOMContentLoaded", function () {
             rels: [],
             apts: {}
         };
-        // Statics
         document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
         document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
         
-        // Dynamic
         document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
             data.traits.push({
                 name: r.querySelector(".trait-name").value,
@@ -829,15 +956,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const json = localStorage.getItem('goldenAgeData');
         if(!json) return;
         const data = JSON.parse(json);
-        
-        // Static
         for(let id in data.statics) { if(document.getElementById(id)) document.getElementById(id).value = data.statics[id]; }
         for(let id in data.apts) { if(document.getElementById(id)) document.getElementById(id).value = data.apts[id]; }
-        
-        // Dynamic
         data.traits.forEach(t => addManualTrait(t.type, t.name, t.desc));
         data.techs.forEach(t => {
-            const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(d);
+            const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
             const sl=d.querySelector(".spell-list"); t.spells.forEach(s=>{const sd=document.createElement("div");sd.className="dynamic-sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
         });
         data.equips.forEach(c => {
@@ -846,13 +969,10 @@ document.addEventListener("DOMContentLoaded", function () {
         data.rels.forEach(c => {
             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${c.status==='vivo'?'selected':''}>Vivo</option><option value="morto" ${c.status==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.desc}</textarea></div>`;relL.appendChild(d);
         });
-
-        // Add Listeners to dynamic elements just created
         document.querySelectorAll('.watch-save').forEach(el => el.addEventListener('input', saveData));
         recalcAll();
     }
-
-    loadData(); // Load on startup
+    loadData();
 });
 </script>
 </body>
