@@ -457,7 +457,7 @@
 
     <div class="gen-section">
       <div class="sec-title">Detalhes & Modificadores</div>
-      
+       
       <div class="form-group">
         <label class="form-label" style="color:var(--gold);">Particularidade</label>
         <input type="text" id="part-name" class="modifier-trigger watch-save" placeholder="Nome (Ex: Gênio das Barreiras)">
@@ -547,14 +547,14 @@ function insertTag(fieldId, openTag, closeTag) {
     const before = text.substring(0, start);
     const selected = text.substring(start, end);
     const after = text.substring(end);
-    
+     
     el.value = before + openTag + selected + closeTag + after;
-    
+     
     // Reposicionar cursor
     const newPos = start + openTag.length + selected.length + (selected.length > 0 ? closeTag.length : 0);
     el.focus();
     el.setSelectionRange(newPos, newPos);
-    
+     
     // Disparar evento de input para salvar
     const event = new Event('input', { bubbles: true });
     el.dispatchEvent(event);
@@ -633,7 +633,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="form-group"><label class="form-label">Nome e Custo (Ex: Bilíngue — 3 pts)</label><input type="text" class="gen-input trait-name modifier-trigger watch-save" value="${name}"></div>
         <div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea trait-desc watch-save">${desc}</textarea></div>`;
         traitsContainer.appendChild(div);
-        
+         
         div.querySelector('.trait-name').addEventListener('input', recalcAll);
         div.querySelector('.remove-corner').addEventListener('click', ()=>{ div.remove(); recalcAll(); saveData(); });
         div.querySelectorAll('.watch-save').forEach(el => el.addEventListener('input', saveData));
@@ -713,14 +713,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const id = e.target.dataset.id;
             const lvlInput = document.getElementById(`${id}-lvl`);
             const curL = parseInt(lvlInput.value) || 0;
-            
+             
             if(curL >= 50) return showAlert("Aviso", "Nível Máximo!");
-            
+             
             const aptName = aptitudesDB.find(a=>a.id===id).name;
             showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
                 const multiplier = calculateAptitude(id, 0).m;
                 const reqTable = xpTable.find(x => x.l === curL + 1);
-                
+                 
                 if(reqTable) {
                     const newTotalXP = Math.floor(reqTable.x * multiplier);
                     document.getElementById(`${id}-xp`).value = newTotalXP;
@@ -756,7 +756,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let techH="", equipH="", relH="";
         document.querySelectorAll("#technique-groups-list .dynamic-card").forEach(c=>{
-            let sp="";c.querySelectorAll(".dynamic-sub-card").forEach(s=>sp+=`<div class="jjk-dossier-card-item"><div class="jjk-dossier-card-title">${s.querySelector(".spell-name").value}</div><div class="jjk-dossier-card-desc">${br(s.querySelector(".spell-desc").value)}</div></div>`);
+            let sp="";c.querySelectorAll(".sub-card").forEach(s=>sp+=`<div class="jjk-dossier-card-item"><div class="jjk-dossier-card-title">${s.querySelector(".spell-name").value}</div><div class="jjk-dossier-card-desc">${br(s.querySelector(".spell-desc").value)}</div></div>`);
             techH+=`<div class="jjk-technique-group"><h4 class="jjk-technique-title"><a href="${c.querySelector(".tech-group-link").value}">${c.querySelector(".tech-group-name").value}</a></h4><div class="jjk-technique-desc jjk-scrollable-content">${br(c.querySelector(".tech-group-desc").value)}</div><div class="jjk-dossier-card-list">${sp}</div></div>`;
         });
         document.querySelectorAll("#equipment-list .dynamic-card").forEach(c=>equipH+=`<div class="jjk-dossier-card-item"><div class="jjk-dossier-card-title">${c.querySelector(".equip-name").value}</div><div class="jjk-dossier-card-subtitle">${c.querySelector(".equip-type").value}</div><div class="jjk-dossier-card-desc">${br(c.querySelector(".equip-desc").value)}</div></div>`);
@@ -840,7 +840,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Tabs Parsing
         const tabs=d.querySelectorAll(".jjk-tab-content");
-        
+         
         // TAB 1: PERFIL
         if(tabs[0]){
             const b=tabs[0].querySelectorAll(".jjk-dossier-block");
@@ -855,20 +855,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 b[1].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Gostos:"))sVal("psy-gostos",t.split(":")[1].trim());if(t.includes("Desgostos:"))sVal("psy-desgostos",t.split(":")[1].trim());if(t.includes("Medos:"))sVal("psy-medos",t.split(":")[1].trim());if(t.includes("Traumas:"))sVal("psy-traumas",t.split(":")[1].trim());if(t.includes("Objetivos:"))sVal("psy-objetivos",t.split(":")[1].trim());if(t.includes("Sonhos:"))sVal("psy-sonhos",t.split(":")[1].trim());}); 
             }
         }
-        
+         
         // TAB 2: COMBATE
         if(tabs[1]){
             tabs[1].querySelectorAll(".jjk-technique-group").forEach(g=>{
                 if(g.parentElement.classList.contains("jjk-domain-expansion")) return;
                 const sp=[]; g.querySelectorAll(".jjk-dossier-card-item").forEach(s=>sp.push({name:s.querySelector(".jjk-dossier-card-title").textContent,desc:s.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}));
                 const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${g.querySelector(".jjk-technique-title a").textContent}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${g.querySelector(".jjk-technique-title a").href}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea tech-group-desc watch-save">${g.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
-                const sl=div.querySelector(".spell-list"); sp.forEach(s=>{const sd=document.createElement("div");sd.className="dynamic-sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+                const sl=div.querySelector(".spell-list"); sp.forEach(s=>{const sd=document.createElement("div");sd.className="sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
             });
             const dom=tabs[1].querySelector(".jjk-domain-expansion .jjk-technique-group"); 
             if(dom){sVal("domain-name",dom.querySelector(".jjk-technique-title a").textContent); sVal("domain-link",dom.querySelector(".jjk-technique-title a").href); sVal("domain-desc",dom.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
             tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;equipL.appendChild(div);});
         }
-        
+         
         // TAB 3: PARTICULARIDADE (ATUALIZADO)
         if(tabs[2]){
             const pc=tabs[2].querySelector(".jjk-particularidade-card");
@@ -879,7 +879,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 sVal("part-notes",pc.querySelector(".jjk-particularidade-notes").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());
             }
         }
-        
+         
         // TAB 4: RELAÇÕES
         if(tabs[3]){
             tabs[3].querySelectorAll(".jjk-dossier-card-item").forEach(c=>{
@@ -887,7 +887,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${t.firstChild.textContent.trim()}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${st==='vivo'?'selected':''}>Vivo</option><option value="morto" ${st==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent.replace("Relação: ","")}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;relL.appendChild(div);
             });
         }
-        
+         
         // TAB 5: BIO
         if(tabs[4]){sVal("bio-text",tabs[4].querySelector(".jjk-dossier-textarea").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
 
@@ -927,7 +927,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
         document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
-        
+         
         document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
             data.traits.push({
                 name: r.querySelector(".trait-name").value,
@@ -936,7 +936,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
         document.querySelectorAll("#technique-groups-list .dynamic-card").forEach(c=>{
-            const sp=[]; c.querySelectorAll(".dynamic-sub-card").forEach(s=>sp.push({name:s.querySelector(".spell-name").value, desc:s.querySelector(".spell-desc").value}));
+            const sp=[]; c.querySelectorAll(".sub-card").forEach(s=>sp.push({name:s.querySelector(".spell-name").value, desc:s.querySelector(".spell-desc").value}));
             data.techs.push({ name:c.querySelector(".tech-group-name").value, link:c.querySelector(".tech-group-link").value, desc:c.querySelector(".tech-group-desc").value, spells:sp });
         });
         document.querySelectorAll("#equipment-list .dynamic-card").forEach(c=>{
@@ -945,7 +945,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("#relations-list .dynamic-card").forEach(c=>{
             data.rels.push({ name:c.querySelector(".rel-name").value, status:c.querySelector(".rel-status").value, type:c.querySelector(".rel-type").value, desc:c.querySelector(".rel-desc").value });
         });
-        
+         
         localStorage.setItem('goldenAgeData', JSON.stringify(data));
         const ind = document.getElementById("autoSaveMsg");
         ind.classList.add("active");
@@ -961,7 +961,7 @@ document.addEventListener("DOMContentLoaded", function () {
         data.traits.forEach(t => addManualTrait(t.type, t.name, t.desc));
         data.techs.forEach(t => {
             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
-            const sl=d.querySelector(".spell-list"); t.spells.forEach(s=>{const sd=document.createElement("div");sd.className="dynamic-sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+            const sl=d.querySelector(".spell-list"); t.spells.forEach(s=>{const sd=document.createElement("div");sd.className="sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
         });
         data.equips.forEach(c => {
              const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.desc}</textarea></div>`;equipL.appendChild(d);
