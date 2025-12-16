@@ -659,6 +659,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if(t.includes("déficit cognitivo")) ar.push({ty:'TYPE',tg:'INT',m:1.3,sn:s});
             if(t.includes("lerdeza física")){ar.push({ty:'TYPE',tg:'FOR',m:1.2,sn:s});ar.push({ty:'TYPE',tg:'DES',m:1.2,sn:s});}
             if(t.includes("prodígio específico")){if(t.includes("força"))ar.push({ty:'TYPE',tg:'FOR',m:0.65,sn:s});if(t.includes("destreza"))ar.push({ty:'TYPE',tg:'DES',m:0.65,sn:s});if(t.includes("inteligência"))ar.push({ty:'TYPE',tg:'INT',m:0.65,sn:s});}
+            if(t.includes("versatilidade inata")) ar.push({ty:'GLOBAL',tg:'ALL',m:0.8,sn:s});
         });
         return ar;
     }
