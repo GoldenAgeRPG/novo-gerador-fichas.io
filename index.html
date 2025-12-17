@@ -29,7 +29,7 @@
 
   /* --- RESET & BASE --- */
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
-   
+    
   body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-dark);
@@ -89,7 +89,7 @@
     transition: border-color 0.3s;
   }
   .gen-section:hover { border-color: rgba(255,255,255,0.2); }
-   
+    
   .sec-title {
     font-family: 'Cinzel', serif;
     font-size: 1.4em;
@@ -110,7 +110,7 @@
   /* --- INPUTS --- */
   .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; }
   .form-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; }
-   
+    
   input, select, textarea {
     background-color: var(--bg-input);
     border: 1px solid var(--border);
@@ -163,13 +163,13 @@
   }
   .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
   .btn:active { transform: translateY(0); }
-   
+    
   .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
   .btn-outline:hover { background: var(--gold-glow); color: white; }
-   
+    
   .btn-pos { background: rgba(76, 175, 80, 0.2); border: 1px solid var(--success); color: var(--success); }
   .btn-pos:hover { background: var(--success); color: #000; }
-   
+    
   .btn-neg { background: rgba(211, 47, 47, 0.2); border: 1px solid var(--danger); color: var(--danger); }
   .btn-neg:hover { background: var(--danger); color: white; }
 
@@ -185,7 +185,7 @@
       font-family: 'Cinzel', serif; 
       font-size: 1.1em;
   }
-   
+    
   .apt-card {
       background: rgba(255,255,255,0.03);
       padding: 12px;
@@ -284,7 +284,7 @@
   }
   .trait-row.t-pos { border-left: 3px solid var(--success); }
   .trait-row.t-neg { border-left: 3px solid var(--danger); }
-   
+    
   .trait-info { flex: 1; }
   .t-name { font-weight: bold; color: white; display: block; }
   .t-cost { font-size: 0.8em; color: var(--gold); margin-left: 5px; }
@@ -309,7 +309,7 @@
   .dynamic-card { background: var(--bg-input); padding: 15px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 10px; position: relative; }
   .trait-card.positive { border-left: 3px solid var(--success); }
   .trait-card.negative { border-left: 3px solid var(--danger); }
-   
+    
   .remove-corner { position: absolute; top: 10px; right: 10px; font-size: 0.8em; background: #333; color: #fff; border:none; padding: 2px 8px; cursor: pointer; border-radius: 3px;}
   .remove-corner:hover { background: var(--danger); }
   .sub-list { margin-top: 10px; padding-left: 15px; border-left: 2px solid var(--gold); }
@@ -457,7 +457,7 @@
 
     <div class="gen-section">
       <div class="sec-title">Detalhes & Modificadores</div>
-       
+        
       <div class="form-group">
         <label class="form-label" style="color:var(--gold);">Particularidade</label>
         <input type="text" id="part-name" class="modifier-trigger watch-save" placeholder="Nome (Ex: Gênio das Barreiras)">
@@ -547,17 +547,43 @@ function insertTag(fieldId, openTag, closeTag) {
     const before = text.substring(0, start);
     const selected = text.substring(start, end);
     const after = text.substring(end);
-     
+      
     el.value = before + openTag + selected + closeTag + after;
-     
+      
     // Reposicionar cursor
     const newPos = start + openTag.length + selected.length + (selected.length > 0 ? closeTag.length : 0);
     el.focus();
     el.setSelectionRange(newPos, newPos);
-     
+      
     // Disparar evento de input para salvar
     const event = new Event('input', { bubbles: true });
     el.dispatchEvent(event);
+}
+
+// FUNÇÃO AUXILIAR: HSL PARA HEX
+function HSLToHex(h,s,l) {
+  s /= 100;
+  l /= 100;
+
+  let c = (1 - Math.abs(2 * l - 1)) * s,
+      x = c * (1 - Math.abs(((h / 60) % 2) - 1)),
+      m = l - c / 2,
+      r = 0,
+      g = 0, 
+      b = 0;
+
+  if (0 <= h && h < 60) { r = c; g = x; b = 0; }
+  else if (60 <= h && h < 120) { r = x; g = c; b = 0; }
+  else if (120 <= h && h < 180) { r = 0; g = c; b = x; }
+  else if (180 <= h && h < 240) { r = 0; g = x; b = c; }
+  else if (240 <= h && h < 300) { r = x; g = 0; b = c; }
+  else if (300 <= h && h < 360) { r = c; g = 0; b = x; }
+
+  r = Math.round((r + m) * 255).toString(16).padStart(2, '0');
+  g = Math.round((g + m) * 255).toString(16).padStart(2, '0');
+  b = Math.round((b + m) * 255).toString(16).padStart(2, '0');
+
+  return `#${r}${g}${b}`;
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -633,7 +659,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="form-group"><label class="form-label">Nome e Custo (Ex: Bilíngue — 3 pts)</label><input type="text" class="gen-input trait-name modifier-trigger watch-save" value="${name}"></div>
         <div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea trait-desc watch-save">${desc}</textarea></div>`;
         traitsContainer.appendChild(div);
-         
+          
         div.querySelector('.trait-name').addEventListener('input', recalcAll);
         div.querySelector('.remove-corner').addEventListener('click', ()=>{ div.remove(); recalcAll(); saveData(); });
         div.querySelectorAll('.watch-save').forEach(el => el.addEventListener('input', saveData));
@@ -714,14 +740,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const id = e.target.dataset.id;
             const lvlInput = document.getElementById(`${id}-lvl`);
             const curL = parseInt(lvlInput.value) || 0;
-             
+              
             if(curL >= 50) return showAlert("Aviso", "Nível Máximo!");
-             
+              
             const aptName = aptitudesDB.find(a=>a.id===id).name;
             showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
                 const multiplier = calculateAptitude(id, 0).m;
                 const reqTable = xpTable.find(x => x.l === curL + 1);
-                 
+                  
                 if(reqTable) {
                     const newTotalXP = Math.floor(reqTable.x * multiplier);
                     document.getElementById(`${id}-xp`).value = newTotalXP;
@@ -795,12 +821,39 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("copy-html-btn").addEventListener("click",()=>{document.getElementById("output-html").select();document.execCommand("copy");});
     document.getElementById("clear-form-btn").addEventListener("click",()=>{localStorage.removeItem('goldenAgeData');location.reload();});
 
-    // === PARSER UPDATE (CARREGAR FICHA - COM CORREÇÃO DE QUEBRA DE LINHA) ===
+    // === PARSER UPDATE (CARREGAR FICHA - COM CORREÇÃO DE QUEBRA DE LINHA E COR) ===
     document.getElementById("load-html-btn").addEventListener("click",()=>{
         const c=document.getElementById("input-html").value, p=new DOMParser(), d=p.parseFromString(c,"text/html");
         if(!d.querySelector(".jjk-dossier-container")) return showAlert("Erro","HTML Inválido.");
         generatorForm.reset(); techL.innerHTML=""; equipL.innerHTML=""; traitsContainer.innerHTML=""; relL.innerHTML="";
         
+        // --- RECUPERAR A COR DO TEMA (HSL) ---
+        const styleTag = d.querySelector('style');
+        if (styleTag) {
+            // Tenta encontrar a variável --jjk-purple e o valor associado
+            const match = styleTag.innerHTML.match(/--jjk-purple:\s*([^;!}]+)/);
+            if (match) {
+                let colorVal = match[1].trim(); 
+                
+                // Se estiver em formato hsl(...)
+                if(colorVal.startsWith("hsl")){
+                    const nums = colorVal.match(/\d+/g).map(Number);
+                    if(nums.length >= 3){
+                        const hex = HSLToHex(nums[0], nums[1], nums[2]);
+                        document.getElementById("theme-color").value = hex;
+                        document.getElementById("theme-hex").value = hex;
+                        updateTheme(hex); 
+                    }
+                } 
+                // Se estiver em formato hex (backup)
+                else if (colorVal.startsWith("#")) {
+                    document.getElementById("theme-color").value = colorVal;
+                    document.getElementById("theme-hex").value = colorVal;
+                    updateTheme(colorVal);
+                }
+            }
+        }
+
         // HELPER CORRIGIDO PARA RESGATAR HTML COM QUEBRAS DE LINHA
         const sGet = (s) => d.querySelector(s)?.textContent.trim() || "";
         const sGetHTML = (s) => {
@@ -841,7 +894,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Tabs Parsing
         const tabs=d.querySelectorAll(".jjk-tab-content");
-         
+          
         // TAB 1: PERFIL
         if(tabs[0]){
             const b=tabs[0].querySelectorAll(".jjk-dossier-block");
@@ -856,7 +909,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 b[1].querySelectorAll(".jjk-profile-item").forEach(i=>{const t=i.textContent;if(t.includes("Gostos:"))sVal("psy-gostos",t.split(":")[1].trim());if(t.includes("Desgostos:"))sVal("psy-desgostos",t.split(":")[1].trim());if(t.includes("Medos:"))sVal("psy-medos",t.split(":")[1].trim());if(t.includes("Traumas:"))sVal("psy-traumas",t.split(":")[1].trim());if(t.includes("Objetivos:"))sVal("psy-objetivos",t.split(":")[1].trim());if(t.includes("Sonhos:"))sVal("psy-sonhos",t.split(":")[1].trim());}); 
             }
         }
-         
+          
         // TAB 2: COMBATE
         if(tabs[1]){
             tabs[1].querySelectorAll(".jjk-technique-group").forEach(g=>{
@@ -869,7 +922,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if(dom){sVal("domain-name",dom.querySelector(".jjk-technique-title a").textContent); sVal("domain-link",dom.querySelector(".jjk-technique-title a").href); sVal("domain-desc",dom.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
             tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;equipL.appendChild(div);});
         }
-         
+          
         // TAB 3: PARTICULARIDADE (ATUALIZADO)
         if(tabs[2]){
             const pc=tabs[2].querySelector(".jjk-particularidade-card");
@@ -880,7 +933,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 sVal("part-notes",pc.querySelector(".jjk-particularidade-notes").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());
             }
         }
-         
+          
         // TAB 4: RELAÇÕES
         if(tabs[3]){
             tabs[3].querySelectorAll(".jjk-dossier-card-item").forEach(c=>{
@@ -888,7 +941,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${t.firstChild.textContent.trim()}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${st==='vivo'?'selected':''}>Vivo</option><option value="morto" ${st==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent.replace("Relação: ","")}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;relL.appendChild(div);
             });
         }
-         
+          
         // TAB 5: BIO
         if(tabs[4]){sVal("bio-text",tabs[4].querySelector(".jjk-dossier-textarea").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
 
@@ -928,7 +981,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
         document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
-         
+          
         document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
             data.traits.push({
                 name: r.querySelector(".trait-name").value,
@@ -946,7 +999,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("#relations-list .dynamic-card").forEach(c=>{
             data.rels.push({ name:c.querySelector(".rel-name").value, status:c.querySelector(".rel-status").value, type:c.querySelector(".rel-type").value, desc:c.querySelector(".rel-desc").value });
         });
-         
+          
         localStorage.setItem('goldenAgeData', JSON.stringify(data));
         const ind = document.getElementById("autoSaveMsg");
         ind.classList.add("active");
