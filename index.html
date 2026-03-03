@@ -686,7 +686,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         {id:"apt-furtividade",name:"Furtividade",type:"DES"},
         {id:"apt-natacao",name:"Natação",type:"DES"},
-        {id:"apt-corrida",name:"Corrida",type:"DES"},
+        {id:"apt-celeridade",name:"Celeridade",type:"DES"},
         
         // INTELIGÊNCIA
         {id:"apt-feiticos",name:"Feitiços",type:"INT"},
@@ -1015,10 +1015,14 @@ document.addEventListener("DOMContentLoaded", function () {
         // TAB 5: BIO
         if(tabs[4]){sVal("bio-text",tabs[4].querySelector(".jjk-dossier-textarea").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
 
-        // XP Calc Reverse
+      // XP Calc Reverse
         const mods = getActiveModifiers();
         d.querySelectorAll(".jjk-dossier-skill-item").forEach(item => {
-            const name = item.querySelector(".jjk-dossier-skill-name").textContent;
+            let name = item.querySelector(".jjk-dossier-skill-name").textContent; // Troque const por let
+            
+            // ADICIONE ESTA LINHA: Correção de compatibilidade de ficha antiga
+            if (name === "Corrida") name = "Celeridade";
+
             const lvl = parseInt(item.querySelector(".jjk-dossier-skill-level").textContent.replace("Nv. ", ""));
             const xpString = item.querySelector(".jjk-dossier-skill-xp").textContent; 
             const currentProgress = parseInt(xpString.split("/")[0]) || 0;
