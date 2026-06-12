@@ -257,6 +257,27 @@
   }
   .btn-levelup:hover { opacity: 1; transform: scale(1.05); }
 
+  .btn-unlock50 {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--text-muted);
+      border-radius: 3px;
+      font-size: 0.7em;
+      font-weight: bold;
+      padding: 4px 8px;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: all 0.2s;
+  }
+  .btn-unlock50.active {
+      background: rgba(212,175,55,0.15);
+      color: var(--gold);
+      border-color: var(--gold);
+      opacity: 1;
+      box-shadow: 0 0 6px var(--gold-glow);
+  }
+  .btn-unlock50:hover { opacity: 1; }
+
   .apt-modifiers-area { 
       display: flex; 
       flex-wrap: wrap; 
@@ -702,6 +723,9 @@ document.addEventListener("DOMContentLoaded", function () {
         {id:"apt-sobrevivencia",name:"Sobrevivência",type:"INT"}
     ];
 
+    // === UNLOCK 50+ STATE ===
+    const unlockedCards = new Set();
+
     // === UI BUILDER ===
     const aptContainer = document.getElementById("aptitudes-container");
     let lastType="";
@@ -710,7 +734,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const h=document.createElement("span");h.className="aptidao-header";h.textContent=a.type==="FOR"?"Força (FOR)":a.type==="DES"?"Destreza (DES)":"Inteligência (INT)";aptContainer.appendChild(h);lastType=a.type;
         }
         const d=document.createElement("div");d.className="apt-card";d.id=`wrapper-${a.id}`;
-        d.innerHTML=`<div class="apt-top-row"><span class="apt-name-label">${a.name}</span><button type="button" class="btn-levelup" data-id="${a.id}" title="Ganho de Nível Direto">+1</button></div><div class="apt-input-row"><div class="apt-input-group"><span class="apt-sub-label">Nível</span><input type="text" id="${a.id}-lvl" class="lvl-display" value="00" readonly tabindex="-1"></div><div class="apt-input-group"><span class="apt-sub-label">XP Total</span><input type="number" id="${a.id}-xp" class="xp-input-total watch-save xp-input" placeholder="0" min="0"></div></div><div class="apt-modifiers-area" id="mods-${a.id}"></div>`;
+        d.innerHTML=`<div class="apt-top-row"><span class="apt-name-label">${a.name}</span><div style="display: flex; gap: 5px"><button type="button" class="btn-unlock50" data-id="${a.id}" title="Liberar progressão além do nível 50">50+</button><button type="button" class="btn-levelup" data-id="${a.id}" title="Ganho de Nível Direto">+1</button></div></div><div class="apt-input-row"><div class="apt-input-group"><span class="apt-sub-label">Nível</span><input type="text" id="${a.id}-lvl" class="lvl-display" value="00" readonly tabindex="-1"></div><div class="apt-input-group"><span class="apt-sub-label">XP Total</span><input type="number" id="${a.id}-xp" class="xp-input-total watch-save xp-input" placeholder="0" min="0"></div></div><div class="apt-modifiers-area" id="mods-${a.id}"></div>`;
         aptContainer.appendChild(d);
     });
 
@@ -789,8 +813,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(i+1<xpTable.length){ nextBase=Math.floor(xpTable[i+1].x*mult); next=nextBase; } else next=null;
             } else { if(lvl===0) next=req; break; }
         }
-        let fmt="MÁXIMO";
-        if(next!==null) fmt=`${xpTotal-base}/${next-base}`;
+        if(next===null && unlockedCards.has(aptId)){
+            let extra=0;
+            while(xpTotal>=Math.floor((222500+(extra+1)*10000)*mult)) extra++;
+            lvl=50+extra;
+            base=Math.floor((222500+extra*10000)*mult);
+            next=Math.floor((222500+(extra+1)*10000)*mult);
+        }
+        let fmt=next===null?"MÁXIMO":`${xpTotal-base}/${next-base}`;
         return {l:lvl,f:fmt,m:mult};
     }
 
@@ -805,26 +835,42 @@ document.addEventListener("DOMContentLoaded", function () {
         generateHTML();
     }
 
-    // LISTENER GLOBAL (BOTÃO +1)
+    // LISTENER GLOBAL (BOTÃO +1 e BOTÃO 50+)
     document.body.addEventListener('click', e => {
+        if(e.target.classList.contains('btn-unlock50')){
+            const id = e.target.dataset.id;
+            if(unlockedCards.has(id)){
+                unlockedCards.delete(id);
+                e.target.classList.remove('active');
+            } else {
+                unlockedCards.add(id);
+                e.target.classList.add('active');
+            }
+            recalcAll();
+            saveData();
+            return;
+        }
         if(e.target.classList.contains('btn-levelup')){
             const id = e.target.dataset.id;
             const lvlInput = document.getElementById(`${id}-lvl`);
             const curL = parseInt(lvlInput.value) || 0;
-              
-            if(curL >= 50) return showAlert("Aviso", "Nível Máximo!");
-              
             const aptName = aptitudesDB.find(a=>a.id===id).name;
+
+            if(curL >= 50 && !unlockedCards.has(id)) return showAlert("Aviso", "Nível 50 atingido! Ative o botão 50+ desta aptidão para continuar a progressão.");
+
             showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
                 const multiplier = calculateAptitude(id, 0).m;
-                const reqTable = xpTable.find(x => x.l === curL + 1);
-                  
-                if(reqTable) {
-                    const newTotalXP = Math.floor(reqTable.x * multiplier);
-                    document.getElementById(`${id}-xp`).value = newTotalXP;
-                    recalcAll();
-                    saveData();
+                let newTotalXP;
+                if(curL >= 50){
+                    newTotalXP = Math.floor((222500 + (curL - 50 + 1) * 10000) * multiplier);
+                } else {
+                    const reqTable = xpTable.find(x => x.l === curL + 1);
+                    if(!reqTable) return;
+                    newTotalXP = Math.floor(reqTable.x * multiplier);
                 }
+                document.getElementById(`${id}-xp`).value = newTotalXP;
+                recalcAll();
+                saveData();
             });
         }
     });
@@ -1059,6 +1105,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
         document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
+        data.unlockedCards = [...unlockedCards];
           
         document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
             data.traits.push({
@@ -1090,6 +1137,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = JSON.parse(json);
         for(let id in data.statics) { if(document.getElementById(id)) document.getElementById(id).value = data.statics[id]; }
         for(let id in data.apts) { if(document.getElementById(id)) document.getElementById(id).value = data.apts[id]; }
+        if(data.unlockedCards) data.unlockedCards.forEach(id => { unlockedCards.add(id); const btn=document.querySelector(`.btn-unlock50[data-id="${id}"]`); if(btn) btn.classList.add('active'); });
         data.traits.forEach(t => addManualTrait(t.type, t.name, t.desc));
         data.techs.forEach(t => {
             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(d);
