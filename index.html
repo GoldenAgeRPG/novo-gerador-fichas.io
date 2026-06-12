@@ -257,6 +257,27 @@
   }
   .btn-levelup:hover { opacity: 1; transform: scale(1.05); }
 
+  .btn-unlock50 {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--text-muted);
+      border-radius: 3px;
+      font-size: 0.7em;
+      font-weight: bold;
+      padding: 4px 8px;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: all 0.2s;
+  }
+  .btn-unlock50.active {
+      background: rgba(212,175,55,0.15);
+      color: var(--gold);
+      border-color: var(--gold);
+      opacity: 1;
+      box-shadow: 0 0 6px var(--gold-glow);
+  }
+  .btn-unlock50:hover { opacity: 1; }
+
   .apt-modifiers-area { 
       display: flex; 
       flex-wrap: wrap; 
@@ -311,6 +332,7 @@
   .trait-card.negative { border-left: 3px solid var(--danger); }
     
   .remove-corner { position: absolute; top: 10px; right: 10px; font-size: 0.8em; background: #333; color: #fff; border:none; padding: 2px 8px; cursor: pointer; border-radius: 3px;}
+  .drag-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .drag-handle { position: absolute; top: 10px; left: 10px; cursor: grab; color: var(--text-muted); font-size: 1.1em; user-select: none; padding: 2px 6px; }
   .drag-handle:active { cursor: grabbing; }
   .trait-card { padding-left: 35px; }
@@ -701,6 +723,9 @@ document.addEventListener("DOMContentLoaded", function () {
         {id:"apt-sobrevivencia",name:"Sobrevivência",type:"INT"}
     ];
 
+    // === UNLOCK 50+ STATE ===
+    const unlockedCards = new Set();
+
     // === UI BUILDER ===
     const aptContainer = document.getElementById("aptitudes-container");
     let lastType="";
@@ -709,7 +734,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const h=document.createElement("span");h.className="aptidao-header";h.textContent=a.type==="FOR"?"Força (FOR)":a.type==="DES"?"Destreza (DES)":"Inteligência (INT)";aptContainer.appendChild(h);lastType=a.type;
         }
         const d=document.createElement("div");d.className="apt-card";d.id=`wrapper-${a.id}`;
-        d.innerHTML=`<div class="apt-top-row"><span class="apt-name-label">${a.name}</span><button type="button" class="btn-levelup" data-id="${a.id}" title="Ganho de Nível Direto">+1</button></div><div class="apt-input-row"><div class="apt-input-group"><span class="apt-sub-label">Nível</span><input type="text" id="${a.id}-lvl" class="lvl-display" value="00" readonly tabindex="-1"></div><div class="apt-input-group"><span class="apt-sub-label">XP Total</span><input type="number" id="${a.id}-xp" class="xp-input-total watch-save xp-input" placeholder="0" min="0"></div></div><div class="apt-modifiers-area" id="mods-${a.id}"></div>`;
+        d.innerHTML=`<div class="apt-top-row"><span class="apt-name-label">${a.name}</span><div style="display: flex; gap: 5px"><button type="button" class="btn-unlock50" data-id="${a.id}" title="Liberar progressão além do nível 50">50+</button><button type="button" class="btn-levelup" data-id="${a.id}" title="Ganho de Nível Direto">+1</button></div></div><div class="apt-input-row"><div class="apt-input-group"><span class="apt-sub-label">Nível</span><input type="text" id="${a.id}-lvl" class="lvl-display" value="00" readonly tabindex="-1"></div><div class="apt-input-group"><span class="apt-sub-label">XP Total</span><input type="number" id="${a.id}-xp" class="xp-input-total watch-save xp-input" placeholder="0" min="0"></div></div><div class="apt-modifiers-area" id="mods-${a.id}"></div>`;
         aptContainer.appendChild(d);
     });
 
@@ -788,8 +813,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(i+1<xpTable.length){ nextBase=Math.floor(xpTable[i+1].x*mult); next=nextBase; } else next=null;
             } else { if(lvl===0) next=req; break; }
         }
-        let fmt="MÁXIMO";
-        if(next!==null) fmt=`${xpTotal-base}/${next-base}`;
+        if(next===null && unlockedCards.has(aptId)){
+            let extra=0;
+            while(xpTotal>=Math.floor((222500+(extra+1)*10000)*mult)) extra++;
+            lvl=50+extra;
+            base=Math.floor((222500+extra*10000)*mult);
+            next=Math.floor((222500+(extra+1)*10000)*mult);
+        }
+        let fmt=next===null?"MÁXIMO":`${xpTotal-base}/${next-base}`;
         return {l:lvl,f:fmt,m:mult};
     }
 
@@ -804,26 +835,42 @@ document.addEventListener("DOMContentLoaded", function () {
         generateHTML();
     }
 
-    // LISTENER GLOBAL (BOTÃO +1)
+    // LISTENER GLOBAL (BOTÃO +1 e BOTÃO 50+)
     document.body.addEventListener('click', e => {
+        if(e.target.classList.contains('btn-unlock50')){
+            const id = e.target.dataset.id;
+            if(unlockedCards.has(id)){
+                unlockedCards.delete(id);
+                e.target.classList.remove('active');
+            } else {
+                unlockedCards.add(id);
+                e.target.classList.add('active');
+            }
+            recalcAll();
+            saveData();
+            return;
+        }
         if(e.target.classList.contains('btn-levelup')){
             const id = e.target.dataset.id;
             const lvlInput = document.getElementById(`${id}-lvl`);
             const curL = parseInt(lvlInput.value) || 0;
-              
-            if(curL >= 50) return showAlert("Aviso", "Nível Máximo!");
-              
             const aptName = aptitudesDB.find(a=>a.id===id).name;
+
+            if(curL >= 50 && !unlockedCards.has(id)) return showAlert("Aviso", "Nível 50 atingido! Ative o botão 50+ desta aptidão para continuar a progressão.");
+
             showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
                 const multiplier = calculateAptitude(id, 0).m;
-                const reqTable = xpTable.find(x => x.l === curL + 1);
-                  
-                if(reqTable) {
-                    const newTotalXP = Math.floor(reqTable.x * multiplier);
-                    document.getElementById(`${id}-xp`).value = newTotalXP;
-                    recalcAll();
-                    saveData();
+                let newTotalXP;
+                if(curL >= 50){
+                    newTotalXP = Math.floor((222500 + (curL - 50 + 1) * 10000) * multiplier);
+                } else {
+                    const reqTable = xpTable.find(x => x.l === curL + 1);
+                    if(!reqTable) return;
+                    newTotalXP = Math.floor(reqTable.x * multiplier);
                 }
+                document.getElementById(`${id}-xp`).value = newTotalXP;
+                recalcAll();
+                saveData();
             });
         }
     });
@@ -888,12 +935,14 @@ document.addEventListener("DOMContentLoaded", function () {
     hInput.addEventListener("input",e=>{if(e.target.value.length===7&&e.target.value.startsWith("#")){cPicker.value=e.target.value;updateTheme(e.target.value);}});
 
     // Helper Buttons
-    const techL=document.getElementById("technique-groups-list"); document.getElementById("add-technique-group").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remover</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save"></textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn" style="margin-top:5px;">+ Feitiço</button></div>`;techL.appendChild(d);});
+    const techL=document.getElementById("technique-groups-list"); document.getElementById("add-technique-group").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">Remover</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save"></textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn" style="margin-top:5px;">+ Feitiço</button></div>`;techL.appendChild(d);});
+    Sortable.create(techL, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', onEnd: saveData });
     document.body.addEventListener("click",e=>{
         if(e.target.classList.contains("remove-corner")){e.target.closest(".dynamic-card, .sub-card").remove();recalcAll();saveData();}
-        if(e.target.classList.contains("add-spell-btn")){const l=e.target.previousElementSibling;const s=document.createElement("div");s.className="sub-card";s.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save"></textarea></div>`;l.appendChild(s);}
+        if(e.target.classList.contains("add-spell-btn")){const l=e.target.previousElementSibling;const s=document.createElement("div");s.className="sub-card";s.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save"></textarea></div>`;l.appendChild(s);if(!l._sortable){l._sortable=Sortable.create(l,{handle:'.drag-handle',animation:150,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:saveData});}}
     });
-    const equipL=document.getElementById("equipment-list");document.getElementById("add-equipment").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save"></textarea></div>`;equipL.appendChild(d);});
+    const equipL=document.getElementById("equipment-list");document.getElementById("add-equipment").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save"></textarea></div>`;equipL.appendChild(d);});
+    Sortable.create(equipL, { handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost', chosenClass: 'sortable-chosen', onEnd: saveData });
     const relL=document.getElementById("relations-list");document.getElementById("add-relation").addEventListener("click",()=>{const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo">Vivo</option><option value="morto">Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save"></textarea></div>`;relL.appendChild(d);});
     document.getElementById("copy-html-btn").addEventListener("click",()=>{document.getElementById("output-html").select();document.execCommand("copy");});
     document.getElementById("clear-form-btn").addEventListener("click",()=>{localStorage.removeItem('goldenAgeData');location.reload();});
@@ -985,12 +1034,13 @@ document.addEventListener("DOMContentLoaded", function () {
             tabs[1].querySelectorAll(".jjk-technique-group").forEach(g=>{
                 if(g.parentElement.classList.contains("jjk-domain-expansion")) return;
                 const sp=[]; g.querySelectorAll(".jjk-dossier-card-item").forEach(s=>sp.push({name:s.querySelector(".jjk-dossier-card-title").textContent,desc:s.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}));
-                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${g.querySelector(".jjk-technique-title a").textContent}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${g.querySelector(".jjk-technique-title a").href}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea tech-group-desc watch-save">${g.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
-                const sl=div.querySelector(".spell-list"); sp.forEach(s=>{const sd=document.createElement("div");sd.className="sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+                const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<div class="drag-header"><span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button></div><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${g.querySelector(".jjk-technique-title a").textContent}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${g.querySelector(".jjk-technique-title a").href}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea tech-group-desc watch-save">${g.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
+                const sl=div.querySelector(".spell-list"); sp.forEach(s=>{const sd=document.createElement("div");sd.className="sub-card";sd.innerHTML=`<div class="drag-header"><span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button></div><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+                if(sl.children.length>0&&!sl._sortable){sl._sortable=Sortable.create(sl,{handle:'.drag-handle',animation:150,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:saveData});}
             });
             const dom=tabs[1].querySelector(".jjk-domain-expansion .jjk-technique-group"); 
             if(dom){sVal("domain-name",dom.querySelector(".jjk-technique-title a").textContent); sVal("domain-link",dom.querySelector(".jjk-technique-title a").href); sVal("domain-desc",dom.querySelector(".jjk-technique-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim());}
-            tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;equipL.appendChild(div);});
+            tabs[1].querySelectorAll(".jjk-dossier-block:last-child .jjk-dossier-card-item").forEach(c=>{const div=document.createElement("div");div.className="dynamic-card";div.innerHTML=`<div class="drag-header"><span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button></div><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.querySelector(".jjk-dossier-card-title").textContent}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.querySelector(".jjk-dossier-card-subtitle").textContent}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.querySelector(".jjk-dossier-card-desc").innerHTML.replace(/<br\s*\/?>/gi, "\n").trim()}</textarea></div>`;equipL.appendChild(div);});
         }
           
         // TAB 3: PARTICULARIDADE
@@ -1055,6 +1105,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
         document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
+        data.unlockedCards = [...unlockedCards];
           
         document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
             data.traits.push({
@@ -1086,13 +1137,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = JSON.parse(json);
         for(let id in data.statics) { if(document.getElementById(id)) document.getElementById(id).value = data.statics[id]; }
         for(let id in data.apts) { if(document.getElementById(id)) document.getElementById(id).value = data.apts[id]; }
+        if(data.unlockedCards) data.unlockedCards.forEach(id => { unlockedCards.add(id); const btn=document.querySelector(`.btn-unlock50[data-id="${id}"]`); if(btn) btn.classList.add('active'); });
         data.traits.forEach(t => addManualTrait(t.type, t.name, t.desc));
         data.techs.forEach(t => {
-            const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(div);
-            const sl=d.querySelector(".spell-list"); t.spells.forEach(s=>{const sd=document.createElement("div");sd.className="sub-card";sd.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+            const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(d);
+            const sl=d.querySelector(".spell-list"); t.spells.forEach(s=>{const sd=document.createElement("div");sd.className="sub-card";sd.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input spell-name watch-save" value="${s.name}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea spell-desc watch-save">${s.desc}</textarea></div>`;sl.appendChild(sd);});
+            if(sl.children.length>0&&!sl._sortable){sl._sortable=Sortable.create(sl,{handle:'.drag-handle',animation:150,ghostClass:'sortable-ghost',chosenClass:'sortable-chosen',onEnd:saveData});}
         });
         data.equips.forEach(c => {
-             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.desc}</textarea></div>`;equipL.appendChild(d);
+             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input equip-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Tipo</label><input type="text" class="gen-input equip-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea equip-desc watch-save">${c.desc}</textarea></div>`;equipL.appendChild(d);
         });
         data.rels.forEach(c => {
             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<button type="button" class="remove-corner">X</button><div class="form-group"><label class="form-label">Nome</label><input type="text" class="gen-input rel-name watch-save" value="${c.name}"></div><div class="form-group"><label class="form-label">Status</label><select class="gen-select rel-status watch-save"><option value="vivo" ${c.status==='vivo'?'selected':''}>Vivo</option><option value="morto" ${c.status==='morto'?'selected':''}>Morto</option></select></div><div class="form-group"><label class="form-label">Relação</label><input type="text" class="gen-input rel-type watch-save" value="${c.type}"></div><div class="form-group"><label class="form-label">Desc</label><textarea class="gen-textarea rel-desc watch-save">${c.desc}</textarea></div>`;relL.appendChild(d);
