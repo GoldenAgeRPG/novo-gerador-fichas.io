@@ -1084,6 +1084,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(tableEntry) {
                     const base = Math.floor(tableEntry.x * multiplier);
                     document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
+                } else if(lvl > 50) {
+                    unlockedCards.add(aptObj.id);
+                    const btn = document.querySelector(`.btn-unlock50[data-id="${aptObj.id}"]`);
+                    if(btn) btn.classList.add('active');
+                    const base = Math.floor((222500 + (lvl - 50) * 10000) * multiplier);
+                    document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
                 } else if(lvl === 0) document.getElementById(`${aptObj.id}-xp`).value = currentProgress;
             }
         });
