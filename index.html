@@ -820,7 +820,11 @@ document.addEventListener("DOMContentLoaded", function () {
             base=Math.floor((222500+extra*10000)*mult);
             next=Math.floor((222500+(extra+1)*10000)*mult);
         }
-        let fmt=next===null?"MÁXIMO":`${xpTotal-base}/${next-base}`;
+        // No nível 50 travado o nível para, mas o XP excedente continua guardado
+        // (e vai no HTML) para não se perder ao exportar/importar a ficha.
+        let fmt;
+        if(next===null){ const surplus=xpTotal-base; fmt=surplus>0?`${surplus}/MÁXIMO`:"MÁXIMO"; }
+        else fmt=`${xpTotal-base}/${next-base}`;
         return {l:lvl,f:fmt,m:mult};
     }
 
@@ -860,14 +864,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
             showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
                 const multiplier = calculateAptitude(id, 0).m;
-                let newTotalXP;
+                const curXP = parseInt(document.getElementById(`${id}-xp`).value) || 0;
+                let curBase, newTotalXP;
                 if(curL >= 50){
+                    curBase = Math.floor((222500 + (curL - 50) * 10000) * multiplier);
                     newTotalXP = Math.floor((222500 + (curL - 50 + 1) * 10000) * multiplier);
                 } else {
                     const reqTable = xpTable.find(x => x.l === curL + 1);
                     if(!reqTable) return;
+                    const curTable = xpTable.find(x => x.l === curL);
+                    curBase = curTable ? Math.floor(curTable.x * multiplier) : 0;
                     newTotalXP = Math.floor(reqTable.x * multiplier);
                 }
+                // Mantém o XP já acumulado dentro do nível atual em vez de zerá-lo
+                newTotalXP += Math.max(0, curXP - curBase);
                 document.getElementById(`${id}-xp`).value = newTotalXP;
                 recalcAll();
                 saveData();
