@@ -268,6 +268,7 @@
       cursor: pointer;
       opacity: 0.5;
       transition: all 0.2s;
+      white-space: nowrap;
   }
   .btn-unlock50.active {
       background: rgba(212,175,55,0.15);
@@ -723,8 +724,35 @@ document.addEventListener("DOMContentLoaded", function () {
         {id:"apt-sobrevivencia",name:"Sobrevivência",type:"INT"}
     ];
 
-    // === UNLOCK 50+ STATE ===
-    const unlockedCards = new Set();
+    // === UNLOCK 50+ STATE (SELOS) ===
+    // Cada selo libera 50 níveis além do 50 (1 selo = até 100, 2 selos = até 150...).
+    const aptSeals = new Map(); // id da aptidão -> quantidade de selos
+    const LEVELS_PER_SEAL = 50;
+    const XP_LVL50 = 222500;
+
+    const getSeals = id => aptSeals.get(id) || 0;
+    const maxLevelFor = id => 50 + LEVELS_PER_SEAL * getSeals(id);
+
+    // Custo progressivo acima do 50: 50→51 = 10.000, 51→52 = 11.000, 52→53 = 12.000...
+    // XP total acumulado para o nível (50 + extra).
+    function xpBeyond50(extra){ return XP_LVL50 + 10000*extra + 500*extra*(extra-1); }
+
+    function updateSealButton(id){
+        const btn = document.querySelector(`.btn-unlock50[data-id="${id}"]`);
+        if(!btn) return;
+        const n = getSeals(id);
+        btn.classList.toggle('active', n>0);
+        btn.textContent = n>0 ? `50+ ×${n}` : '50+';
+        btn.title = n>0
+            ? `${n} selo(s) — progressão liberada até o nível ${maxLevelFor(id)}. Clique para usar mais um selo (clickar segurando o shift remove um).`
+            : 'Usar um selo para liberar a progressão além do nível 50';
+    }
+
+    function setSeals(id, n){
+        n = Math.max(0, n|0);
+        if(n) aptSeals.set(id, n); else aptSeals.delete(id);
+        updateSealButton(id);
+    }
 
     // === UI BUILDER ===
     const aptContainer = document.getElementById("aptitudes-container");
@@ -813,14 +841,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(i+1<xpTable.length){ nextBase=Math.floor(xpTable[i+1].x*mult); next=nextBase; } else next=null;
             } else { if(lvl===0) next=req; break; }
         }
-        if(next===null && unlockedCards.has(aptId)){
+        const seals=getSeals(aptId);
+        if(next===null && seals>0){
+            const cap=LEVELS_PER_SEAL*seals;
             let extra=0;
-            while(xpTotal>=Math.floor((222500+(extra+1)*10000)*mult)) extra++;
+            while(extra<cap && xpTotal>=Math.floor(xpBeyond50(extra+1)*mult)) extra++;
             lvl=50+extra;
-            base=Math.floor((222500+extra*10000)*mult);
-            next=Math.floor((222500+(extra+1)*10000)*mult);
+            base=Math.floor(xpBeyond50(extra)*mult);
+            next=extra<cap ? Math.floor(xpBeyond50(extra+1)*mult) : null;
         }
-        // No nível 50 travado o nível para, mas o XP excedente continua guardado
+        // No teto de nível o nível para, mas o XP excedente continua guardado
         // (e vai no HTML) para não se perder ao exportar/importar a ficha.
         let fmt;
         if(next===null){ const surplus=xpTotal-base; fmt=surplus>0?`${surplus}/MÁXIMO`:"MÁXIMO"; }
@@ -843,13 +873,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.addEventListener('click', e => {
         if(e.target.classList.contains('btn-unlock50')){
             const id = e.target.dataset.id;
-            if(unlockedCards.has(id)){
-                unlockedCards.delete(id);
-                e.target.classList.remove('active');
-            } else {
-                unlockedCards.add(id);
-                e.target.classList.add('active');
-            }
+            // Shift+clique remove um selo; clique normal consome mais um.
+            setSeals(id, getSeals(id) + (e.shiftKey ? -1 : 1));
             recalcAll();
             saveData();
             return;
@@ -860,15 +885,17 @@ document.addEventListener("DOMContentLoaded", function () {
             const curL = parseInt(lvlInput.value) || 0;
             const aptName = aptitudesDB.find(a=>a.id===id).name;
 
-            if(curL >= 50 && !unlockedCards.has(id)) return showAlert("Aviso", "Nível 50 atingido! Ative o botão 50+ desta aptidão para continuar a progressão.");
+            if(curL >= maxLevelFor(id)) return showAlert("Aviso", getSeals(id)===0
+                ? "Nível 50 atingido! Use um selo (botão 50+) desta aptidão para continuar a progressão."
+                : `Nível ${curL} atingido! Cada selo libera ${LEVELS_PER_SEAL} níveis — clique no botão 50+ novamente para usar mais um selo.`);
 
             showConfirm("Level Up", `Upar ${aptName} para Nível ${curL+1}?`, () => {
                 const multiplier = calculateAptitude(id, 0).m;
                 const curXP = parseInt(document.getElementById(`${id}-xp`).value) || 0;
                 let curBase, newTotalXP;
                 if(curL >= 50){
-                    curBase = Math.floor((222500 + (curL - 50) * 10000) * multiplier);
-                    newTotalXP = Math.floor((222500 + (curL - 50 + 1) * 10000) * multiplier);
+                    curBase = Math.floor(xpBeyond50(curL - 50) * multiplier);
+                    newTotalXP = Math.floor(xpBeyond50(curL - 49) * multiplier);
                 } else {
                     const reqTable = xpTable.find(x => x.l === curL + 1);
                     if(!reqTable) return;
@@ -895,7 +922,8 @@ document.addEventListener("DOMContentLoaded", function () {
             aptitudesDB.filter(a=>a.type===t).forEach(a=>{
                 const xp=document.getElementById(`${a.id}-xp`).dataset.formatted||"000/200";
                 const l=document.getElementById(`${a.id}-lvl`).value;
-                skillH+=`<div class="jjk-dossier-skill-item"><span class="jjk-dossier-skill-name">${a.name}</span><span class="jjk-dossier-skill-level">Nv. ${l}</span><span class="jjk-dossier-skill-xp">${xp}</span><div class="jjk-dossier-skill-bar"><div class="jjk-dossier-skill-bar-fill"></div></div></div>`;
+                const seals=getSeals(a.id);
+                skillH+=`<div class="jjk-dossier-skill-item"${seals?` data-seals="${seals}"`:""}><span class="jjk-dossier-skill-name">${a.name}</span><span class="jjk-dossier-skill-level">Nv. ${l}</span><span class="jjk-dossier-skill-xp">${xp}</span><div class="jjk-dossier-skill-bar"><div class="jjk-dossier-skill-bar-fill"></div></div></div>`;
             });
             skillH+=`</div></div>`;
         });
@@ -1090,15 +1118,16 @@ document.addEventListener("DOMContentLoaded", function () {
             if(aptObj) {
                 let multiplier = 1.0;
                 mods.forEach(r=>{if(r.ty==='GLOBAL'||(r.ty==='TYPE'&&r.tg===aptObj.type)||(r.ty==='ID'&&r.tg===aptObj.id))multiplier*=r.m;});
+                const declaredSeals = parseInt(item.dataset.seals) || 0;
+                setSeals(aptObj.id, declaredSeals);
                 const tableEntry = xpTable.find(x => x.l === lvl);
                 if(tableEntry) {
                     const base = Math.floor(tableEntry.x * multiplier);
                     document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
                 } else if(lvl > 50) {
-                    unlockedCards.add(aptObj.id);
-                    const btn = document.querySelector(`.btn-unlock50[data-id="${aptObj.id}"]`);
-                    if(btn) btn.classList.add('active');
-                    const base = Math.floor((222500 + (lvl - 50) * 10000) * multiplier);
+                    // Selos gravados na ficha; fichas antigas derivam o mínimo necessário pelo nível.
+                    setSeals(aptObj.id, Math.max(declaredSeals, Math.ceil((lvl - 50) / LEVELS_PER_SEAL)));
+                    const base = Math.floor(xpBeyond50(lvl - 50) * multiplier);
                     document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
                 } else if(lvl === 0) document.getElementById(`${aptObj.id}-xp`).value = currentProgress;
             }
@@ -1121,7 +1150,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
         document.querySelectorAll('.watch-save').forEach(el => { if(el.id) data.statics[el.id] = el.value; });
         document.querySelectorAll('.xp-input-total').forEach(el => { data.apts[el.id] = el.value; });
-        data.unlockedCards = [...unlockedCards];
+        data.aptSeals = Object.fromEntries(aptSeals);
           
         document.querySelectorAll("#traits-container .dynamic-card").forEach(r=>{
             data.traits.push({
@@ -1153,7 +1182,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const data = JSON.parse(json);
         for(let id in data.statics) { if(document.getElementById(id)) document.getElementById(id).value = data.statics[id]; }
         for(let id in data.apts) { if(document.getElementById(id)) document.getElementById(id).value = data.apts[id]; }
-        if(data.unlockedCards) data.unlockedCards.forEach(id => { unlockedCards.add(id); const btn=document.querySelector(`.btn-unlock50[data-id="${id}"]`); if(btn) btn.classList.add('active'); });
+        if(data.aptSeals) for(let id in data.aptSeals) setSeals(id, data.aptSeals[id]);
+        // Compatibilidade: saves antigos guardavam só o desbloqueio (equivale a 1 selo).
+        else if(data.unlockedCards) data.unlockedCards.forEach(id => setSeals(id, 1));
         data.traits.forEach(t => addManualTrait(t.type, t.name, t.desc));
         data.techs.forEach(t => {
             const d=document.createElement("div");d.className="dynamic-card";d.innerHTML=`<span class="drag-handle">☰</span><button type="button" class="remove-corner">Remove</button><div class="form-group"><label class="form-label">Nome Grupo</label><input type="text" class="gen-input tech-group-name watch-save" value="${t.name}"></div><div class="form-group"><label class="form-label">Link</label><input type="url" class="gen-input tech-group-link watch-save" value="${t.link}"></div><div class="form-group"><label class="form-label">Descrição</label><textarea class="gen-textarea tech-group-desc watch-save">${t.desc}</textarea></div><div class="sub-list"><h4>Feitiços</h4><div class="spell-list"></div><button type="button" class="btn btn-outline btn-small add-spell-btn">+ Spell</button></div>`; techL.appendChild(d);
