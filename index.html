@@ -923,7 +923,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 const xp=document.getElementById(`${a.id}-xp`).dataset.formatted||"000/200";
                 const l=document.getElementById(`${a.id}-lvl`).value;
                 const seals=getSeals(a.id);
-                skillH+=`<div class="jjk-dossier-skill-item"${seals?` data-seals="${seals}"`:""}><span class="jjk-dossier-skill-name">${a.name}</span><span class="jjk-dossier-skill-level">Nv. ${l}</span><span class="jjk-dossier-skill-xp">${xp}</span><div class="jjk-dossier-skill-bar"><div class="jjk-dossier-skill-bar-fill"></div></div></div>`;
+                // data-xp guarda o XP total bruto: a importação usa ele em vez de recalcular
+                // pela tabela, então mudanças de custo não alteram fichas já exportadas.
+                const xpTotal=parseInt(document.getElementById(`${a.id}-xp`).value)||0;
+                skillH+=`<div class="jjk-dossier-skill-item" data-xp="${xpTotal}"${seals?` data-seals="${seals}"`:""}><span class="jjk-dossier-skill-name">${a.name}</span><span class="jjk-dossier-skill-level">Nv. ${l}</span><span class="jjk-dossier-skill-xp">${xp}</span><div class="jjk-dossier-skill-bar"><div class="jjk-dossier-skill-bar-fill"></div></div></div>`;
             });
             skillH+=`</div></div>`;
         });
@@ -1119,17 +1122,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 let multiplier = 1.0;
                 mods.forEach(r=>{if(r.ty==='GLOBAL'||(r.ty==='TYPE'&&r.tg===aptObj.type)||(r.ty==='ID'&&r.tg===aptObj.id))multiplier*=r.m;});
                 const declaredSeals = parseInt(item.dataset.seals) || 0;
-                setSeals(aptObj.id, declaredSeals);
+                // Os selos já conquistados são mantidos mesmo que o nível caia na reprecificação.
+                setSeals(aptObj.id, Math.max(declaredSeals, lvl > 50 ? Math.ceil((lvl - 50) / LEVELS_PER_SEAL) : 0));
+
+                const storedXP = parseInt(item.dataset.xp);
+                const xpField = document.getElementById(`${aptObj.id}-xp`);
+                if(Number.isFinite(storedXP)){
+                    // Ficha nova: o XP total veio gravado, então entra exatamente como está.
+                    xpField.value = storedXP;
+                    return;
+                }
+                // Ficha antiga (sem data-xp): preserva o XP conquistado sob o custo antigo
+                // (linear, 10.000 por nível acima do 50). O nível é recalculado pelo custo novo.
                 const tableEntry = xpTable.find(x => x.l === lvl);
                 if(tableEntry) {
                     const base = Math.floor(tableEntry.x * multiplier);
-                    document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
+                    xpField.value = base + currentProgress;
                 } else if(lvl > 50) {
-                    // Selos gravados na ficha; fichas antigas derivam o mínimo necessário pelo nível.
-                    setSeals(aptObj.id, Math.max(declaredSeals, Math.ceil((lvl - 50) / LEVELS_PER_SEAL)));
-                    const base = Math.floor(xpBeyond50(lvl - 50) * multiplier);
-                    document.getElementById(`${aptObj.id}-xp`).value = base + currentProgress;
-                } else if(lvl === 0) document.getElementById(`${aptObj.id}-xp`).value = currentProgress;
+                    const base = Math.floor((XP_LVL50 + (lvl - 50) * 10000) * multiplier);
+                    xpField.value = base + currentProgress;
+                } else if(lvl === 0) xpField.value = currentProgress;
             }
         });
 
